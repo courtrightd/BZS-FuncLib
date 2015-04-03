@@ -1434,6 +1434,14 @@ function back_to_SELF
   Loop until SELF_check = "SELF"
 End function
 
+'This function asks if you want to cancel. If you say yes, it sends StopScript.
+FUNCTION cancel_confirmation
+	If ButtonPressed = 0 then 
+		cancel_confirm = MsgBox("Are you sure you want to cancel the script? Press YES to cancel. Press NO to return to the script.", vbYesNo)
+		If cancel_confirm = vbYes then stopscript
+	End if
+END FUNCTION
+
 Function check_for_MAXIS(end_script)
 	Do
 		transmit
@@ -1500,16 +1508,29 @@ Function create_array_of_all_active_x_numbers_in_county(array_name, county_code)
 	array_name = split(array_name)
 End function
 
+'Creates a MM DD YY date entry at screen_row and screen_col. The variable_length variable is the amount of days to offset the date entered. I.e., 10 for 10 days, -10 for 10 days in the past, etc.
 Function create_MAXIS_friendly_date(date_variable, variable_length, screen_row, screen_col) 
-  var_month = datepart("m", dateadd("d", variable_length, date_variable))
-  If len(var_month) = 1 then var_month = "0" & var_month
-  EMWriteScreen var_month, screen_row, screen_col
-  var_day = datepart("d", dateadd("d", variable_length, date_variable))
-  If len(var_day) = 1 then var_day = "0" & var_day
-  EMWriteScreen var_day, screen_row, screen_col + 3
-  var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
-  EMWriteScreen right(var_year, 2), screen_row, screen_col + 6
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))
+	If len(var_month) = 1 then var_month = "0" & var_month
+	EMWriteScreen var_month, screen_row, screen_col
+	var_day = datepart("d", dateadd("d", variable_length, date_variable))
+	If len(var_day) = 1 then var_day = "0" & var_day
+	EMWriteScreen var_day, screen_row, screen_col + 3
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
+	EMWriteScreen right(var_year, 2), screen_row, screen_col + 6
 End function
+
+'Creates a MM DD YYYY date entry at screen_row and screen_col. The variable_length variable is the amount of days to offset the date entered. I.e., 10 for 10 days, -10 for 10 days in the past, etc.
+FUNCTION create_MAXIS_friendly_date_with_YYYY(date_variable, variable_length, screen_row, screen_col) 
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))
+	IF len(var_month) = 1 THEN var_month = "0" & var_month
+	EMWriteScreen var_month, screen_row, screen_col
+	var_day = datepart("d", dateadd("d", variable_length, date_variable))
+	IF len(var_day) = 1 THEN var_day = "0" & var_day
+	EMWriteScreen var_day, screen_row, screen_col + 3
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
+	EMWriteScreen var_year, screen_row, screen_col + 6
+END FUNCTION
 
 Function create_panel_if_nonexistent()
 	EMWriteScreen reference_number , 20, 76
@@ -1539,12 +1560,6 @@ Function create_panel_if_nonexistent()
 			Transmit
 		End If
 	End If
-End Function
-
-'-------------------THIS IS NOW DEPRECIATED AS THE NAVIGATE_TO_SCREEN DOES THIS. A FIND/REPLACE SHOULD BE EXECUTED ON THE SCRIPTS TO REMOVE IT FROM EXISTENCE
-Function ERRR_screen_check 'Checks for error prone cases
-	EMReadScreen ERRR_check, 4, 2, 52
-	If ERRR_check = "ERRR" then transmit
 End Function
 
 Function end_excel_and_script
@@ -1606,11 +1621,6 @@ Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
 		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
 		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
 	End if
-End function
-
-'-----------DEPRECIATED AS OF 01/20/2015. LEFT IN HERE FOR COMPATIBILITY PURPOSES.
-Function maxis_check_function
-	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
 End function
 
 Function HH_member_custom_dialog(HH_member_array)
@@ -1732,6 +1742,102 @@ function log_usage_stats_without_closing 'For use when logging usage stats but t
 		"VALUES ('" & user_ID & "', '" & date & "', '" & time & "', '" & name_of_script & "', " & script_run_time & ", '" & "" & "')", objConnection, adOpenStatic, adLockOptimistic
 	End if
 end function
+
+'This function navigates to various panels in MAXIS. You need to name your buttons using the button names in the function.
+FUNCTION MAXIS_dialog_navigation
+	'This part works with the prev/next buttons on several of our dialogs. You need to name your buttons prev_panel_button, next_panel_button, prev_memb_button, and next_memb_button in order to use them.
+	EMReadScreen STAT_check, 4, 20, 21
+	If STAT_check = "STAT" then
+		If ButtonPressed = prev_panel_button then 
+			EMReadScreen current_panel, 1, 2, 73
+			EMReadScreen amount_of_panels, 1, 2, 78
+			If current_panel = 1 then new_panel = current_panel
+			If current_panel > 1 then new_panel = current_panel - 1
+			If amount_of_panels > 1 then EMWriteScreen "0" & new_panel, 20, 79
+			transmit
+		ELSEIF ButtonPressed = next_panel_button then 
+			EMReadScreen current_panel, 1, 2, 73
+			EMReadScreen amount_of_panels, 1, 2, 78
+			If current_panel < amount_of_panels then new_panel = current_panel + 1
+			If current_panel = amount_of_panels then new_panel = current_panel
+			If amount_of_panels > 1 then EMWriteScreen "0" & new_panel, 20, 79
+			transmit
+		ELSEIF ButtonPressed = prev_memb_button then 
+			HH_memb_row = HH_memb_row - 1
+			EMReadScreen prev_HH_memb, 2, HH_memb_row, 3
+			If isnumeric(prev_HH_memb) = False then
+				HH_memb_row = HH_memb_row + 1
+			Else
+				EMWriteScreen prev_HH_memb, 20, 76
+				EMWriteScreen "01", 20, 79
+			End if
+			transmit
+		ELSEIF ButtonPressed = next_memb_button then 
+			HH_memb_row = HH_memb_row + 1
+			EMReadScreen next_HH_memb, 2, HH_memb_row, 3
+			If isnumeric(next_HH_memb) = False then
+				HH_memb_row = HH_memb_row + 1
+			Else
+				EMWriteScreen next_HH_memb, 20, 76
+				EMWriteScreen "01", 20, 79
+			End if
+			transmit
+		End if
+	End if
+	
+	'This part takes care of remaining navigation buttons, designed to go to a single panel.
+	If ButtonPressed = ABPS_button then call navigate_to_screen("stat", "ABPS")
+	If ButtonPressed = ACCI_button then call navigate_to_screen("stat", "ACCI")
+	If ButtonPressed = ACCT_button then call navigate_to_screen("stat", "ACCT")
+	If ButtonPressed = ADDR_button then call navigate_to_screen("stat", "ADDR")
+	If ButtonPressed = ALTP_button then call navigate_to_screen("stat", "ALTP")
+	If ButtonPressed = AREP_button then call navigate_to_screen("stat", "AREP")
+	If ButtonPressed = BILS_button then call navigate_to_screen("stat", "BILS")
+	If ButtonPressed = BUSI_button then call navigate_to_screen("stat", "BUSI")
+	If ButtonPressed = CARS_button then call navigate_to_screen("stat", "CARS")
+	If ButtonPressed = CASH_button then call navigate_to_screen("stat", "CASH")
+	If ButtonPressed = COEX_button then call navigate_to_screen("stat", "COEX")
+	If ButtonPressed = DCEX_button then call navigate_to_screen("stat", "DCEX")
+	If ButtonPressed = DIET_button then call navigate_to_screen("stat", "DIET")
+	If ButtonPressed = DISA_button then call navigate_to_screen("stat", "DISA")
+	If ButtonPressed = EATS_button then call navigate_to_screen("stat", "EATS")
+	If ButtonPressed = ELIG_DWP_button then call navigate_to_screen("elig", "DWP_")
+	If ButtonPressed = ELIG_FS_button then call navigate_to_screen("elig", "FS__")
+	If ButtonPressed = ELIG_GA_button then call navigate_to_screen("elig", "GA__")
+	If ButtonPressed = ELIG_HC_button then call navigate_to_screen("elig", "HC__")
+	If ButtonPressed = ELIG_MFIP_button then call navigate_to_screen("elig", "MFIP")
+	If ButtonPressed = ELIG_MSA_button then call navigate_to_screen("elig", "MSA_")
+	If ButtonPressed = ELIG_WB_button then call navigate_to_screen("elig", "WB__")
+	If ButtonPressed = FACI_button then call navigate_to_screen("stat", "FACI")
+	If ButtonPressed = FMED_button then call navigate_to_screen("stat", "FMED")
+	If ButtonPressed = HCRE_button then call navigate_to_screen("stat", "HCRE")
+	If ButtonPressed = HEST_button then call navigate_to_screen("stat", "HEST")
+	If ButtonPressed = IMIG_button then call navigate_to_screen("stat", "IMIG")
+	If ButtonPressed = INSA_button then call navigate_to_screen("stat", "INSA")
+	If ButtonPressed = JOBS_button then call navigate_to_screen("stat", "JOBS")
+	If ButtonPressed = MEDI_button then call navigate_to_screen("stat", "MEDI")
+	If ButtonPressed = MEMB_button then call navigate_to_screen("stat", "MEMB")
+	If ButtonPressed = MEMI_button then call navigate_to_screen("stat", "MEMI")
+	If ButtonPressed = MONT_button then call navigate_to_screen("stat", "MONT")
+	If ButtonPressed = OTHR_button then call navigate_to_screen("stat", "OTHR")
+	If ButtonPressed = PBEN_button then call navigate_to_screen("stat", "PBEN")
+	If ButtonPressed = PDED_button then call navigate_to_screen("stat", "PDED")
+	If ButtonPressed = PREG_button then call navigate_to_screen("stat", "PREG")
+	If ButtonPressed = PROG_button then call navigate_to_screen("stat", "PROG")
+	If ButtonPressed = RBIC_button then call navigate_to_screen("stat", "RBIC")
+	If ButtonPressed = REST_button then call navigate_to_screen("stat", "REST")
+	If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
+	If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
+	If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
+	If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
+	If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
+	If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
+	If ButtonPressed = SHEL_button then call navigate_to_screen("stat", "SHEL")
+	If ButtonPressed = SWKR_button then call navigate_to_screen("stat", "SWKR")
+	If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
+	If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
+	If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+END FUNCTION
 
 Function memb_navigation_next
   HH_memb_row = HH_memb_row + 1
@@ -2046,6 +2152,16 @@ function PF20
   EMWaitReady 0, 0
 end function
 
+'Asks the user if they want to proceed. Result_of_msgbox parameter returns TRUE if Yes is pressed, and FALSE if No is pressed.
+FUNCTION proceed_confirmation(result_of_msgbox)
+	If ButtonPressed = -1 then 
+		proceed_confirm = MsgBox("Are you sure you want to proceed? Press Yes to continue, No to return to the previous screen, and Cancel to end the script.", vbYesNoCancel)
+		If proceed_confirm = vbCancel then stopscript
+		If proceed_confirm = vbYes then result_of_msgbox = TRUE
+		If proceed_confirm = vbNo then result_of_msgbox = FALSE
+	End if
+END FUNCTION
+
 function run_another_script(script_path)
   Set run_another_script_fso = CreateObject("Scripting.FileSystemObject")
   Set fso_command = run_another_script_fso.OpenTextFile(script_path)
@@ -2136,6 +2252,15 @@ function script_end_procedure_wsh(closing_message) 'For use when running a scrip
 	End if
 	Wscript.Quit
 end function
+
+'Navigates you to a blank case note, presses PF9, and checks to make sure you're in edit mode (keeping you from writing all of the case note on an inquiry screen).
+FUNCTION start_a_blank_CASE_NOTE
+	call navigate_to_screen("case", "note")
+	PF9
+	EMReadScreen case_note_check, 17, 2, 33
+	EMReadScreen mode_check, 1, 20, 09
+	If case_note_check <> "Case Notes (NOTE)" or mode_check <> "A" then script_end_procedure("The script can't open a case note. Are you in inquiry? Check MAXIS and try again. The script will now stop.")
+END FUNCTION
 
 function stat_navigation
   EMReadScreen STAT_check, 4, 20, 21
@@ -2682,6 +2807,15 @@ Function write_variable_in_TIKL(variable)
 End function
 
 '--------DEPRECIATED FUNCTIONS KEPT FOR COMPATIBILITY PURPOSES, THE NEW FUNCTIONS ARE INDICATED WITHIN THE OLD FUNCTIONS
+Function ERRR_screen_check 'Checks for error prone cases				'DEPRECIATED AS OF 01/20/2015.
+	EMReadScreen ERRR_check, 4, 2, 52	'Now included in NAVIGATE_TO_MAXIS_SCREEN
+	If ERRR_check = "ERRR" then transmit
+End Function
+
+Function maxis_check_function											'DEPRECIATED AS OF 01/20/2015.
+	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
+End function
+
 Function navigate_to_screen(x, y)										'DEPRECIATED AS OF 03/09/2015.
 	call navigate_to_MAXIS_screen(x, y)
 End function
@@ -2701,6 +2835,8 @@ End function
 FUNCTION write_TIKL_function(variable)									'DEPRECIATED AS OF 01/20/2015.
 	call write_variable_in_TIKL(variable)
 END FUNCTION
+
+
 
 '<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
 If beta_agency = True then 
