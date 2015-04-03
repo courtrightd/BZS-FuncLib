@@ -2212,7 +2212,7 @@ Function worker_county_code_determination(worker_county_code_variable, two_digit
 End function
 
 Function write_bullet_and_variable_in_CASE_NOTE(bullet, variable)
-	If variable <> "" then
+	If trim(variable) <> "" then
 		EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
 		noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
 		'The following figures out if we need a new page, or if we need a new case note entirely as well.
@@ -2437,7 +2437,7 @@ Function write_three_columns_in_CASE_NOTE(col_01_start_point, col_01_variable, c
 End function
 
 Function write_variable_in_CASE_NOTE(variable)
-	If variable <> "" THEN
+	If trim(variable) <> "" THEN
 		EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
 		noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
 		'The following figures out if we need a new page, or if we need a new case note entirely as well.
