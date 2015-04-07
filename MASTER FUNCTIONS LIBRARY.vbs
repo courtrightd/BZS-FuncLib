@@ -46,10 +46,6 @@ OK = -1			'Value for OK button in dialogs
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
-Function magic_escape_string(str)
-	magic_escape_string = replace(str,"@","@@") ' This allows use of the @ symbol for EMSendkey
-End Function
-
 Function add_ACCI_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
   EMReadScreen ACCI_date, 8, 6, 73
   ACCI_date = replace(ACCI_date, " ", "/")
@@ -1456,6 +1452,14 @@ Function check_for_MAXIS(end_script)
 		End if
 	Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS "
 End function
+
+'This function converts a date (MM/DD/YY or MM/DD/YYYY format) into a separate footer month and footer year variables. For best results, always use footer_month and footer_year as the appropriate variables.
+FUNCTION convert_date_into_MAXIS_footer_month(date_to_convert, footer_month, footer_year)
+	footer_month = DatePart("m", date_to_convert)						'Uses DatePart function to copy the month from date_to_convert into the footer_month variable.
+	IF Len(footer_month) = 1 THEN footer_month = "0" & footer_month		'Uses Len function to determine if the footer_month is a single digit month. If so, it adds a 0, which MAXIS needs.
+	footer_year = DatePart("yyyy", date_to_convert)						'Uses DatePart function to copy the year from date_to_convert into the footer_year variable.
+	footer_year = Right(footer_year, 2)									'Uses Right function to reduce the footer_year variable to it's right 2 characters (allowing for a 2 digit footer year).
+END FUNCTION
 
 'This function converts a numeric digit to an Excel column, up to 104 digits (columns).
 function convert_digit_to_excel_column(col_in_excel)
