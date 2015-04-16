@@ -37,16 +37,14 @@
 'END IF
 
 'GLOBAL CONSTANTS----------------------------------------------------------------------------------------------------
+Dim checked, unchecked, cancel, OK		'Declares this for Option Explicit users
+
 checked = 1			'Value for checked boxes
 unchecked = 0		'Value for unchecked boxes
 cancel = 0			'Value for cancel button in dialogs
 OK = -1			'Value for OK button in dialogs
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
-
-Function magic_escape_string(str)
-	magic_escape_string = replace(str,"@","@@") ' This allows use of the @ symbol for EMSendkey
-End Function
 
 Function add_ACCI_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
   EMReadScreen ACCI_date, 8, 6, 73
@@ -595,9 +593,15 @@ Function attn
 End function
 
 Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_written_to)
+ 'First it navigates to the screen. Only does the first four characters because we use separate handling for HCRE-retro. This is something that should be fixed someday!!!!!!!!!
+  call navigate_to_MAXIS_screen("stat", left(panel_read_from, 4))
+  
+  'Now it checks for the total number of panels. If there's 0 Of 0 it'll exit the function for you so as to save oodles of time.
+  EMReadScreen panel_total_check, 6, 2, 73
+  IF panel_total_check = "0 Of 0" THEN exit function		'Exits out if there's no panel info
+  
   If variable_written_to <> "" then variable_written_to = variable_written_to & "; "
   If panel_read_from = "ABPS" then '--------------------------------------------------------------------------------------------------------ABPS
-    call navigate_to_screen("stat", "ABPS")
     EMReadScreen ABPS_total_pages, 1, 2, 78
     If ABPS_total_pages <> 0 then 
       Do
@@ -659,14 +663,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       variable_written_to = support_coop & variable_written_to
     End if
   Elseif panel_read_from = "ACCI" then '----------------------------------------------------------------------------------------------------ACCI
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "ACCI")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen ACCI_total, 1, 2, 78
       If ACCI_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_ACCI_to_variable(variable_written_to)
           EMReadScreen ACCI_panel_current, 1, 2, 73
@@ -675,14 +678,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "ACCT" then '----------------------------------------------------------------------------------------------------ACCT
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "acct")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen ACCT_total, 1, 2, 78
       If ACCT_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_ACCT_to_variable(variable_written_to)
           EMReadScreen ACCT_panel_current, 1, 2, 73
@@ -691,7 +693,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "ADDR" then '----------------------------------------------------------------------------------------------------ADDR
-    call navigate_to_screen("stat", "addr")
     EMReadScreen addr_line_01, 22, 6, 43
     EMReadScreen addr_line_02, 22, 7, 43
     EMReadScreen city_line, 15, 8, 43
@@ -700,7 +701,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     variable_written_to = replace(addr_line_01, "_", "") & "; " & replace(addr_line_02, "_", "") & "; " & replace(city_line, "_", "") & ", " & state_line & " " & replace(zip_line, "__ ", "-")
     variable_written_to = replace(variable_written_to, "; ; ", "; ") 'in case there's only one line on ADDR
   Elseif panel_read_from = "AREP" then '----------------------------------------------------------------------------------------------------AREP
-    call navigate_to_screen("stat", "arep")
     EMReadScreen AREP_name, 37, 4, 32
     AREP_name = replace(AREP_name, "_", "")
     AREP_name = split(AREP_name)
@@ -716,18 +716,16 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "BILS" then '----------------------------------------------------------------------------------------------------BILS
-    call navigate_to_screen("stat", "bils")
     EMReadScreen BILS_amt, 1, 2, 78
     If BILS_amt <> 0 then variable_written_to = "BILS known to MAXIS."
   Elseif panel_read_from = "BUSI" then '----------------------------------------------------------------------------------------------------BUSI
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "busi")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen BUSI_total, 1, 2, 78
       If BUSI_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_BUSI_to_variable(variable_written_to)
           EMReadScreen BUSI_panel_current, 1, 2, 73
@@ -736,14 +734,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "CARS" then '----------------------------------------------------------------------------------------------------CARS
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "cars")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen CARS_total, 1, 2, 78
       If CARS_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_CARS_to_variable(variable_written_to)
           EMReadScreen CARS_panel_current, 1, 2, 73
@@ -752,21 +749,19 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "CASH" then '----------------------------------------------------------------------------------------------------CASH
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "cash")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen cash_amt, 8, 8, 39
       cash_amt = trim(cash_amt)
       If cash_amt <> "________" then
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         variable_written_to = variable_written_to & "Cash ($" & cash_amt & "); "
       End if
     Next
   Elseif panel_read_from = "COEX" then '----------------------------------------------------------------------------------------------------COEX
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "coex")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -779,7 +774,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         Else
           support_ver = ""
         End if
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         variable_written_to = variable_written_to & "Support ($" & support_amt & "/mo" & support_ver & "); "
       End if
       EMReadScreen alimony_amt, 8, 11, 63
@@ -791,7 +786,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         Else
           alimony_ver = ""
         End if
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         variable_written_to = variable_written_to & "Alimony ($" & alimony_amt & "/mo" & alimony_ver & "); "
       End if
       EMReadScreen tax_dep_amt, 8, 12, 63
@@ -803,7 +798,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         Else
           tax_dep_ver = ""
         End if
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         variable_written_to = variable_written_to & "Tax dep ($" & tax_dep_amt & "/mo" & tax_dep_ver & "); "
       End if
       EMReadScreen other_COEX_amt, 8, 13, 63
@@ -815,13 +810,12 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         Else
           other_COEX_ver = ""
         End if
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         variable_written_to = variable_written_to & "Other ($" & other_COEX_amt & "/mo" & other_COEX_ver & "); "
       End if
     Next
   Elseif panel_read_from = "DCEX" then '----------------------------------------------------------------------------------------------------DCEX
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "dcex")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -830,7 +824,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMReadScreen expense_amt, 8, DCEX_row, 63
       expense_amt = trim(expense_amt)
       If expense_amt <> "________" then
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         EMReadScreen child_ref_nbr, 2, DCEX_row, 29
         EMReadScreen expense_ver, 1, DCEX_row, 41
         If expense_ver = "?" or expense_ver = "N" or expense_ver = "_" then
@@ -844,15 +838,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       Loop until DCEX_row = 17
     Next
   Elseif panel_read_from = "DIET" then '----------------------------------------------------------------------------------------------------DIET
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "diet")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       DIET_row = 8 'Setting this variable for the next do...loop
       EMReadScreen DIET_total, 1, 2, 78
       If DIET_total <> 0 then 
-        If HH_member <> "01" then DIET = DIET & "Member " & HH_member & "- "
+        DIET = DIET & "Member " & HH_member & "- "
         Do
           EMReadScreen diet_type, 2, DIET_row, 40
           EMReadScreen diet_proof, 1, DIET_row, 51
@@ -878,8 +871,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "DISA" then '----------------------------------------------------------------------------------------------------DISA
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "disa")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -904,12 +896,11 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         Else
           DISA_proof_type = ""
         End if
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         variable_written_to = variable_written_to & DISA_status & DISA_proof_type & "; "
       End if
     Next
   Elseif panel_read_from = "EATS" then '----------------------------------------------------------------------------------------------------EATS
-    call navigate_to_screen("stat", "eats")
     row = 14
     Do
       EMReadScreen reference_numbers_current_row, 40, row, 39
@@ -925,8 +916,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     if right(EATS_info, 1) = "," then EATS_info = left(EATS_info, len(EATS_info) - 1)
     If EATS_info <> "" then variable_written_to = variable_written_to & ", p/p sep from memb(s) " & EATS_info & "."
   Elseif panel_read_from = "FACI" then '----------------------------------------------------------------------------------------------------FACI
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "faci")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -961,14 +951,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         If FACI_status = "Not in facility" then
           client_FACI = ""
         Else
-          If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+          variable_written_to = variable_written_to & "Member " & HH_member & "- "
           variable_written_to = variable_written_to & client_FACI & "; "
         End if
       End if
     Next
   Elseif panel_read_from = "FMED" then '----------------------------------------------------------------------------------------------------FMED
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "fmed")
+	For each HH_member in HH_member_array
 	  ERRR_screen_check
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
@@ -976,7 +965,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       fmed_row = 9 'Setting this variable for the next do...loop
       EMReadScreen fmed_total, 1, 2, 78
       If fmed_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
 		  use_expense = False					'<--- Used to determine if an FMED expense that has an end date is going to be counted.
           EMReadScreen fmed_type, 2, fmed_row, 25
@@ -1031,7 +1020,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "HCRE" then '----------------------------------------------------------------------------------------------------HCRE
-    call navigate_to_screen("stat", "hcre")
     EMReadScreen variable_written_to, 8, 10, 51
     variable_written_to = replace(variable_written_to, " ", "/")
     If variable_written_to = "__/__/__" then EMReadScreen variable_written_to, 8, 11, 51
@@ -1039,7 +1027,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     If isdate(variable_written_to) = True then variable_written_to = cdate(variable_written_to) & ""
     If isdate(variable_written_to) = False then variable_written_to = ""
   Elseif panel_read_from = "HCRE-retro" then '----------------------------------------------------------------------------------------------HCRE-retro
-    call navigate_to_screen("stat", "hcre")
     EMReadScreen variable_written_to, 5, 10, 64
     If isdate(variable_written_to) = True then
       variable_written_to = replace(variable_written_to, " ", "/01/")
@@ -1050,7 +1037,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     End if
   Elseif panel_read_from = "HEST" then '----------------------------------------------------------------------------------------------------HEST
-    call navigate_to_screen("stat", "hest")
     EMReadScreen HEST_total, 1, 2, 78
     If HEST_total <> 0 then 
       EMReadScreen heat_air_check, 6, 13, 75
@@ -1061,20 +1047,18 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       If phone_check <> "      " then variable_written_to = variable_written_to & "Phone.; "
     End if
   Elseif panel_read_from = "IMIG" then '----------------------------------------------------------------------------------------------------IMIG
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "IMIG")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen IMIG_total, 1, 2, 78
       If IMIG_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         EMReadScreen IMIG_type, 30, 6, 48
         variable_written_to = variable_written_to & trim(IMIG_type) & "; "
       End if
     Next
   Elseif panel_read_from = "INSA" then '----------------------------------------------------------------------------------------------------INSA
-    call navigate_to_screen("stat", "insa")
     EMReadScreen INSA_amt, 1, 2, 78
     If INSA_amt <> 0 then
       EMReadScreen INSA_name, 38, 10, 38
@@ -1094,14 +1078,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       variable_written_to = trim(variable_written_to) & "; "
     End if
   Elseif panel_read_from = "JOBS" then '----------------------------------------------------------------------------------------------------JOBS
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "jobs")
+	For each HH_member in HH_member_array  
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen JOBS_total, 1, 2, 78
       If JOBS_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_JOBS_to_variable(variable_written_to)
           EMReadScreen JOBS_panel_current, 1, 2, 73
@@ -1110,8 +1093,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "MEDI" then '----------------------------------------------------------------------------------------------------MEDI
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "MEDI")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -1119,8 +1101,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       If MEDI_amt <> "0" then variable_written_to = variable_written_to & "Medicare for member " & HH_member & ".; "
     Next
   Elseif panel_read_from = "MEMB" then '----------------------------------------------------------------------------------------------------MEMB
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "memb")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       transmit
       EMReadScreen rel_to_applicant, 2, 10, 42
@@ -1136,8 +1117,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     If number_of_children > 0 then variable_written_to = variable_written_to & ", " & number_of_children & "c"
     If left(variable_written_to, 1) = "," then variable_written_to = right(variable_written_to, len(variable_written_to) - 1)
   Elseif panel_read_from = "MEMI" then '----------------------------------------------------------------------------------------------------MEMI
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "memi")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -1149,11 +1129,10 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       If citizenship_ver = "__" or citizenship_ver = "NO" then cit_proof_indicator = ", no verifs provided"
       If SSA_MA_citizenship_ver = "R" then cit_proof_indicator = ", MEMI infc req'd"
       If (citizenship_ver <> "__" and citizenship_ver <> "NO") or (SSA_MA_citizenship_ver = "A") then cit_proof_indicator = ""
-      If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+      variable_written_to = variable_written_to & "Member " & HH_member & "- "
       variable_written_to = variable_written_to & citizen & cit_proof_indicator & "; "
     Next
   ElseIf panel_read_from = "MONT" then '----------------------------------------------------------------------------------------------------MONT
-    call navigate_to_screen("stat", "mont")
     EMReadScreen variable_written_to, 8, 6, 39
     variable_written_to = replace(variable_written_to, " ", "/")
     If isdate(variable_written_to) = True then
@@ -1162,14 +1141,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       variable_written_to = ""
     End if
   Elseif panel_read_from = "OTHR" then '----------------------------------------------------------------------------------------------------OTHR
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "othr")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen OTHR_total, 1, 2, 78
       If OTHR_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_OTHR_to_variable(variable_written_to)
           EMReadScreen OTHR_panel_current, 1, 2, 73
@@ -1178,13 +1156,12 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "PBEN" then '----------------------------------------------------------------------------------------------------PBEN
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "pben")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       transmit
       EMReadScreen panel_amt, 1, 2, 78
       If panel_amt <> "0" then
-        If HH_member <> "01" then PBEN = PBEN & "Member " & HH_member & "- "
+        PBEN = PBEN & "Member " & HH_member & "- "
         row = 8
         Do
           EMReadScreen PBEN_type, 12, row, 28
@@ -1202,14 +1179,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     Next
     If PBEN <> "" then variable_written_to = variable_written_to & PBEN
   Elseif panel_read_from = "PREG" then '----------------------------------------------------------------------------------------------------PREG
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "PREG")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen PREG_total, 1, 2, 78
       If PREG_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         EMReadScreen PREG_due_date, 8, 10, 53
         If PREG_due_date = "__ __ __" then
           PREG_due_date = "unknown"
@@ -1220,7 +1196,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "PROG" then '----------------------------------------------------------------------------------------------------PROG
-    call navigate_to_screen("stat", "prog") 'THIS WILL DETERMINE THE LAST DATESTAMP ON THE PROG PANEL
     row = 6
     Do
       EMReadScreen appl_prog_date, 8, row, 33
@@ -1240,14 +1215,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       variable_written_to = ""
     End if
   Elseif panel_read_from = "RBIC" then '----------------------------------------------------------------------------------------------------RBIC
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "rbic")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen RBIC_total, 1, 2, 78
       If RBIC_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_RBIC_to_variable(variable_written_to)
           EMReadScreen RBIC_panel_current, 1, 2, 73
@@ -1256,14 +1230,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "REST" then '----------------------------------------------------------------------------------------------------REST
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "rest")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen REST_total, 1, 2, 78
       If REST_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_REST_to_variable(variable_written_to)
           EMReadScreen REST_panel_current, 1, 2, 73
@@ -1272,7 +1245,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "REVW" then '----------------------------------------------------------------------------------------------------REVW
-    call navigate_to_screen("stat", "revw")
     EMReadScreen variable_written_to, 8, 13, 37
     variable_written_to = replace(variable_written_to, " ", "/")
     If isdate(variable_written_to) = True then
@@ -1281,8 +1253,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       variable_written_to = ""
     End if
   Elseif panel_read_from = "SCHL" then '----------------------------------------------------------------------------------------------------SCHL
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "schl")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -1302,19 +1273,18 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         Else
           school_proof_type = ""
         End if
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         variable_written_to = variable_written_to & school_type & school_proof_type & "; "
       End if
     Next
   Elseif panel_read_from = "SECU" then '----------------------------------------------------------------------------------------------------SECU
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "secu")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen SECU_total, 1, 2, 78
       If SECU_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_SECU_to_variable(variable_written_to)
           EMReadScreen SECU_panel_current, 1, 2, 73
@@ -1323,14 +1293,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "SHEL" then '----------------------------------------------------------------------------------------------------SHEL
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "shel")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen SHEL_total, 1, 2, 78
       If SHEL_total <> 0 then 
-        If HH_member <> "01" then member_number_designation = "Member " & HH_member & "- "
+        member_number_designation = "Member " & HH_member & "- "
         row = 11
         Do
           EMReadScreen SHEL_amount, 8, row, 56
@@ -1351,14 +1320,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       SHEL_expense = ""
     Next
   Elseif panel_read_from = "STWK" then '----------------------------------------------------------------------------------------------------STWK
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "STWK")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen STWK_total, 1, 2, 78
       If STWK_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         EMReadScreen STWK_verification, 1, 7, 63
         If STWK_verification = "N" then
           STWK_verification = ", no proof provided"
@@ -1397,14 +1365,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       new_STWK_employer = "" 'clearing variable to prevent duplicates
     Next
   Elseif panel_read_from = "UNEA" then '----------------------------------------------------------------------------------------------------UNEA
-    For each HH_member in HH_member_array
-      call navigate_to_screen("stat", "unea")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
       EMReadScreen UNEA_total, 1, 2, 78
       If UNEA_total <> 0 then 
-        If HH_member <> "01" then variable_written_to = variable_written_to & "Member " & HH_member & "- "
+        variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_UNEA_to_variable(variable_written_to)
           EMReadScreen UNEA_panel_current, 1, 2, 73
@@ -1413,8 +1380,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "WREG" then '---------------------------------------------------------------------------------------------------WREG
-    For each HH_member in HH_member_array
-	call navigate_to_screen("stat", "wreg")
+	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -1452,7 +1418,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     Next
   End if
   variable_written_to = trim(variable_written_to) '-----------------------------------------------------------------------------------------cleaning up editbox
-  if right(variable_written_to, 1) = ";" then variable_written_to= left(variable_written_to, len(variable_written_to) - 1)
+  if right(variable_written_to, 1) = ";" then variable_written_to = left(variable_written_to, len(variable_written_to) - 1)
 
 End function
 
@@ -1463,6 +1429,14 @@ function back_to_SELF
     EMReadScreen SELF_check, 4, 2, 50
   Loop until SELF_check = "SELF"
 End function
+
+'This function asks if you want to cancel. If you say yes, it sends StopScript.
+FUNCTION cancel_confirmation
+	If ButtonPressed = 0 then 
+		cancel_confirm = MsgBox("Are you sure you want to cancel the script? Press YES to cancel. Press NO to return to the script.", vbYesNo)
+		If cancel_confirm = vbYes then stopscript
+	End if
+END FUNCTION
 
 Function check_for_MAXIS(end_script)
 	Do
@@ -1478,6 +1452,25 @@ Function check_for_MAXIS(end_script)
 		End if
 	Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS "
 End function
+
+'This function converts an array into a droplist to be used by a dialog
+Function convert_array_to_droplist_items(array_to_convert, output_droplist_box)
+	For each item in array_to_convert
+		If output_droplist_box = "" then 
+			output_droplist_box = item
+		Else
+			output_droplist_box = output_droplist_box & chr(9) & item
+		End if
+	Next
+End Function
+
+'This function converts a date (MM/DD/YY or MM/DD/YYYY format) into a separate footer month and footer year variables. For best results, always use footer_month and footer_year as the appropriate variables.
+FUNCTION convert_date_into_MAXIS_footer_month(date_to_convert, footer_month, footer_year)
+	footer_month = DatePart("m", date_to_convert)						'Uses DatePart function to copy the month from date_to_convert into the footer_month variable.
+	IF Len(footer_month) = 1 THEN footer_month = "0" & footer_month		'Uses Len function to determine if the footer_month is a single digit month. If so, it adds a 0, which MAXIS needs.
+	footer_year = DatePart("yyyy", date_to_convert)						'Uses DatePart function to copy the year from date_to_convert into the footer_year variable.
+	footer_year = Right(footer_year, 2)									'Uses Right function to reduce the footer_year variable to it's right 2 characters (allowing for a 2 digit footer year).
+END FUNCTION
 
 'This function converts a numeric digit to an Excel column, up to 104 digits (columns).
 function convert_digit_to_excel_column(col_in_excel)
@@ -1530,16 +1523,29 @@ Function create_array_of_all_active_x_numbers_in_county(array_name, county_code)
 	array_name = split(array_name)
 End function
 
+'Creates a MM DD YY date entry at screen_row and screen_col. The variable_length variable is the amount of days to offset the date entered. I.e., 10 for 10 days, -10 for 10 days in the past, etc.
 Function create_MAXIS_friendly_date(date_variable, variable_length, screen_row, screen_col) 
-  var_month = datepart("m", dateadd("d", variable_length, date_variable))
-  If len(var_month) = 1 then var_month = "0" & var_month
-  EMWriteScreen var_month, screen_row, screen_col
-  var_day = datepart("d", dateadd("d", variable_length, date_variable))
-  If len(var_day) = 1 then var_day = "0" & var_day
-  EMWriteScreen var_day, screen_row, screen_col + 3
-  var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
-  EMWriteScreen right(var_year, 2), screen_row, screen_col + 6
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))
+	If len(var_month) = 1 then var_month = "0" & var_month
+	EMWriteScreen var_month, screen_row, screen_col
+	var_day = datepart("d", dateadd("d", variable_length, date_variable))
+	If len(var_day) = 1 then var_day = "0" & var_day
+	EMWriteScreen var_day, screen_row, screen_col + 3
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
+	EMWriteScreen right(var_year, 2), screen_row, screen_col + 6
 End function
+
+'Creates a MM DD YYYY date entry at screen_row and screen_col. The variable_length variable is the amount of days to offset the date entered. I.e., 10 for 10 days, -10 for 10 days in the past, etc.
+FUNCTION create_MAXIS_friendly_date_with_YYYY(date_variable, variable_length, screen_row, screen_col) 
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))
+	IF len(var_month) = 1 THEN var_month = "0" & var_month
+	EMWriteScreen var_month, screen_row, screen_col
+	var_day = datepart("d", dateadd("d", variable_length, date_variable))
+	IF len(var_day) = 1 THEN var_day = "0" & var_day
+	EMWriteScreen var_day, screen_row, screen_col + 3
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
+	EMWriteScreen var_year, screen_row, screen_col + 6
+END FUNCTION
 
 Function create_panel_if_nonexistent()
 	EMWriteScreen reference_number , 20, 76
@@ -1569,12 +1575,6 @@ Function create_panel_if_nonexistent()
 			Transmit
 		End If
 	End If
-End Function
-
-'-------------------THIS IS NOW DEPRECIATED AS THE NAVIGATE_TO_SCREEN DOES THIS. A FIND/REPLACE SHOULD BE EXECUTED ON THE SCRIPTS TO REMOVE IT FROM EXISTENCE
-Function ERRR_screen_check 'Checks for error prone cases
-	EMReadScreen ERRR_check, 4, 2, 52
-	If ERRR_check = "ERRR" then transmit
 End Function
 
 Function end_excel_and_script
@@ -1636,11 +1636,6 @@ Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
 		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
 		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
 	End if
-End function
-
-'-----------DEPRECIATED AS OF 01/20/2015. LEFT IN HERE FOR COMPATIBILITY PURPOSES.
-Function maxis_check_function
-	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
 End function
 
 Function HH_member_custom_dialog(HH_member_array)
@@ -1763,6 +1758,102 @@ function log_usage_stats_without_closing 'For use when logging usage stats but t
 	End if
 end function
 
+'This function navigates to various panels in MAXIS. You need to name your buttons using the button names in the function.
+FUNCTION MAXIS_dialog_navigation
+	'This part works with the prev/next buttons on several of our dialogs. You need to name your buttons prev_panel_button, next_panel_button, prev_memb_button, and next_memb_button in order to use them.
+	EMReadScreen STAT_check, 4, 20, 21
+	If STAT_check = "STAT" then
+		If ButtonPressed = prev_panel_button then 
+			EMReadScreen current_panel, 1, 2, 73
+			EMReadScreen amount_of_panels, 1, 2, 78
+			If current_panel = 1 then new_panel = current_panel
+			If current_panel > 1 then new_panel = current_panel - 1
+			If amount_of_panels > 1 then EMWriteScreen "0" & new_panel, 20, 79
+			transmit
+		ELSEIF ButtonPressed = next_panel_button then 
+			EMReadScreen current_panel, 1, 2, 73
+			EMReadScreen amount_of_panels, 1, 2, 78
+			If current_panel < amount_of_panels then new_panel = current_panel + 1
+			If current_panel = amount_of_panels then new_panel = current_panel
+			If amount_of_panels > 1 then EMWriteScreen "0" & new_panel, 20, 79
+			transmit
+		ELSEIF ButtonPressed = prev_memb_button then 
+			HH_memb_row = HH_memb_row - 1
+			EMReadScreen prev_HH_memb, 2, HH_memb_row, 3
+			If isnumeric(prev_HH_memb) = False then
+				HH_memb_row = HH_memb_row + 1
+			Else
+				EMWriteScreen prev_HH_memb, 20, 76
+				EMWriteScreen "01", 20, 79
+			End if
+			transmit
+		ELSEIF ButtonPressed = next_memb_button then 
+			HH_memb_row = HH_memb_row + 1
+			EMReadScreen next_HH_memb, 2, HH_memb_row, 3
+			If isnumeric(next_HH_memb) = False then
+				HH_memb_row = HH_memb_row + 1
+			Else
+				EMWriteScreen next_HH_memb, 20, 76
+				EMWriteScreen "01", 20, 79
+			End if
+			transmit
+		End if
+	End if
+	
+	'This part takes care of remaining navigation buttons, designed to go to a single panel.
+	If ButtonPressed = ABPS_button then call navigate_to_screen("stat", "ABPS")
+	If ButtonPressed = ACCI_button then call navigate_to_screen("stat", "ACCI")
+	If ButtonPressed = ACCT_button then call navigate_to_screen("stat", "ACCT")
+	If ButtonPressed = ADDR_button then call navigate_to_screen("stat", "ADDR")
+	If ButtonPressed = ALTP_button then call navigate_to_screen("stat", "ALTP")
+	If ButtonPressed = AREP_button then call navigate_to_screen("stat", "AREP")
+	If ButtonPressed = BILS_button then call navigate_to_screen("stat", "BILS")
+	If ButtonPressed = BUSI_button then call navigate_to_screen("stat", "BUSI")
+	If ButtonPressed = CARS_button then call navigate_to_screen("stat", "CARS")
+	If ButtonPressed = CASH_button then call navigate_to_screen("stat", "CASH")
+	If ButtonPressed = COEX_button then call navigate_to_screen("stat", "COEX")
+	If ButtonPressed = DCEX_button then call navigate_to_screen("stat", "DCEX")
+	If ButtonPressed = DIET_button then call navigate_to_screen("stat", "DIET")
+	If ButtonPressed = DISA_button then call navigate_to_screen("stat", "DISA")
+	If ButtonPressed = EATS_button then call navigate_to_screen("stat", "EATS")
+	If ButtonPressed = ELIG_DWP_button then call navigate_to_screen("elig", "DWP_")
+	If ButtonPressed = ELIG_FS_button then call navigate_to_screen("elig", "FS__")
+	If ButtonPressed = ELIG_GA_button then call navigate_to_screen("elig", "GA__")
+	If ButtonPressed = ELIG_HC_button then call navigate_to_screen("elig", "HC__")
+	If ButtonPressed = ELIG_MFIP_button then call navigate_to_screen("elig", "MFIP")
+	If ButtonPressed = ELIG_MSA_button then call navigate_to_screen("elig", "MSA_")
+	If ButtonPressed = ELIG_WB_button then call navigate_to_screen("elig", "WB__")
+	If ButtonPressed = FACI_button then call navigate_to_screen("stat", "FACI")
+	If ButtonPressed = FMED_button then call navigate_to_screen("stat", "FMED")
+	If ButtonPressed = HCRE_button then call navigate_to_screen("stat", "HCRE")
+	If ButtonPressed = HEST_button then call navigate_to_screen("stat", "HEST")
+	If ButtonPressed = IMIG_button then call navigate_to_screen("stat", "IMIG")
+	If ButtonPressed = INSA_button then call navigate_to_screen("stat", "INSA")
+	If ButtonPressed = JOBS_button then call navigate_to_screen("stat", "JOBS")
+	If ButtonPressed = MEDI_button then call navigate_to_screen("stat", "MEDI")
+	If ButtonPressed = MEMB_button then call navigate_to_screen("stat", "MEMB")
+	If ButtonPressed = MEMI_button then call navigate_to_screen("stat", "MEMI")
+	If ButtonPressed = MONT_button then call navigate_to_screen("stat", "MONT")
+	If ButtonPressed = OTHR_button then call navigate_to_screen("stat", "OTHR")
+	If ButtonPressed = PBEN_button then call navigate_to_screen("stat", "PBEN")
+	If ButtonPressed = PDED_button then call navigate_to_screen("stat", "PDED")
+	If ButtonPressed = PREG_button then call navigate_to_screen("stat", "PREG")
+	If ButtonPressed = PROG_button then call navigate_to_screen("stat", "PROG")
+	If ButtonPressed = RBIC_button then call navigate_to_screen("stat", "RBIC")
+	If ButtonPressed = REST_button then call navigate_to_screen("stat", "REST")
+	If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
+	If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
+	If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
+	If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
+	If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
+	If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
+	If ButtonPressed = SHEL_button then call navigate_to_screen("stat", "SHEL")
+	If ButtonPressed = SWKR_button then call navigate_to_screen("stat", "SWKR")
+	If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
+	If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
+	If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+END FUNCTION
+
 Function memb_navigation_next
   HH_memb_row = HH_memb_row + 1
   EMReadScreen next_HH_memb, 2, HH_memb_row, 3
@@ -1813,7 +1904,7 @@ Function MMIS_RKEY_finder
   EMWaitReady 0, 0
 End function
 
-function navigate_to_screen(x, y)
+Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
   EMSendKey "<enter>"
   EMWaitReady 0, 0
   EMReadScreen MAXIS_check, 5, 1, 39
@@ -1831,11 +1922,11 @@ function navigate_to_screen(x, y)
       current_case_number = replace(current_case_number, "_", "")
       current_case_number = trim(current_case_number)
     End if
-    If current_case_number = case_number and MAXIS_function = ucase(x) and STAT_note_check <> "NOTE" then 
+    If current_case_number = case_number and MAXIS_function = ucase(function_to_go_to) and STAT_note_check <> "NOTE" then 
       row = 1
       col = 1
       EMSearch "Command: ", row, col
-      EMWriteScreen y, row, col + 9
+      EMWriteScreen command_to_go_to, row, col + 9
       EMSendKey "<enter>"
       EMWaitReady 0, 0
     Else
@@ -1844,12 +1935,12 @@ function navigate_to_screen(x, y)
         EMWaitReady 0, 0
         EMReadScreen SELF_check, 4, 2, 50
       Loop until SELF_check = "SELF"
-      EMWriteScreen x, 16, 43
+      EMWriteScreen function_to_go_to, 16, 43
       EMWriteScreen "________", 18, 43
       EMWriteScreen case_number, 18, 43
       EMWriteScreen footer_month, 20, 43
       EMWriteScreen footer_year, 20, 46
-      EMWriteScreen y, 21, 70
+      EMWriteScreen command_to_go_to, 21, 70
       EMSendKey "<enter>"
       EMWaitReady 0, 0
       EMReadScreen abended_check, 7, 9, 27
@@ -2036,8 +2127,33 @@ Function PF12
   EMWaitReady 0, 0
 End function
 
-Function PF19
-  EMSendKey "<PF19>"
+Function PF13
+  EMSendKey "<PF13>"
+  EMWaitReady 0, 0
+End function
+
+Function PF14
+  EMSendKey "<PF14>"
+  EMWaitReady 0, 0
+End function
+
+Function PF15
+  EMSendKey "<PF15>"
+  EMWaitReady 0, 0
+End function
+
+Function PF16
+  EMSendKey "<PF16>"
+  EMWaitReady 0, 0
+End function
+
+Function PF17
+  EMSendKey "<PF17>"
+  EMWaitReady 0, 0
+End function
+
+Function PF18
+  EMSendKey "<PF18>"
   EMWaitReady 0, 0
 End function
 
@@ -2050,6 +2166,16 @@ function PF20
   EMSendKey "<PF20>"
   EMWaitReady 0, 0
 end function
+
+'Asks the user if they want to proceed. Result_of_msgbox parameter returns TRUE if Yes is pressed, and FALSE if No is pressed.
+FUNCTION proceed_confirmation(result_of_msgbox)
+	If ButtonPressed = -1 then 
+		proceed_confirm = MsgBox("Are you sure you want to proceed? Press Yes to continue, No to return to the previous screen, and Cancel to end the script.", vbYesNoCancel)
+		If proceed_confirm = vbCancel then stopscript
+		If proceed_confirm = vbYes then result_of_msgbox = TRUE
+		If proceed_confirm = vbNo then result_of_msgbox = FALSE
+	End if
+END FUNCTION
 
 function run_another_script(script_path)
   Set run_another_script_fso = CreateObject("Scripting.FileSystemObject")
@@ -2142,6 +2268,15 @@ function script_end_procedure_wsh(closing_message) 'For use when running a scrip
 	Wscript.Quit
 end function
 
+'Navigates you to a blank case note, presses PF9, and checks to make sure you're in edit mode (keeping you from writing all of the case note on an inquiry screen).
+FUNCTION start_a_blank_CASE_NOTE
+	call navigate_to_screen("case", "note")
+	PF9
+	EMReadScreen case_note_check, 17, 2, 33
+	EMReadScreen mode_check, 1, 20, 09
+	If case_note_check <> "Case Notes (NOTE)" or mode_check <> "A" then script_end_procedure("The script can't open a case note. Are you in inquiry? Check MAXIS and try again. The script will now stop.")
+END FUNCTION
+
 function stat_navigation
   EMReadScreen STAT_check, 4, 20, 21
   If STAT_check = "STAT" then
@@ -2216,18 +2351,63 @@ Function worker_county_code_determination(worker_county_code_variable, two_digit
 	End if
 End function
 
-Function write_bullet_and_variable_in_case_note(bullet, variable)
-
-	EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
-	noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
-	'The following figures out if we need a new page, or if we need a new case note entirely as well.
-	Do
-		EMReadScreen character_test, 1, noting_row, noting_col 	'Reads a single character at the noting row/col. If there's a character there, it needs to go down a row, and look again until there's nothing. It also needs to trigger these events if it's at or above row 18 (which means we're beyond case note range).
-		If character_test <> " " or noting_row >= 18 then 
-			noting_row = noting_row + 1
+Function write_bullet_and_variable_in_CASE_NOTE(bullet, variable)
+	If trim(variable) <> "" then
+		EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
+		noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
+		'The following figures out if we need a new page, or if we need a new case note entirely as well.
+		Do
+			EMReadScreen character_test, 1, noting_row, noting_col 	'Reads a single character at the noting row/col. If there's a character there, it needs to go down a row, and look again until there's nothing. It also needs to trigger these events if it's at or above row 18 (which means we're beyond case note range).
+			If character_test <> " " or noting_row >= 18 then 
+				noting_row = noting_row + 1
+				
+				'If we get to row 18 (which can't be read here), it will go to the next panel (PF8).
+				If noting_row >= 18 then 
+					EMSendKey "<PF8>"
+					EMWaitReady 0, 0
+					
+					'Checks to see if we've reached the end of available case notes. If we are, it will get us to a new case note.
+					EMReadScreen end_of_case_note_check, 1, 24, 2
+					If end_of_case_note_check = "A" then
+						EMSendKey "<PF3>"												'PF3s
+						EMWaitReady 0, 0
+						EMSendKey "<PF9>"												'PF9s (opens new note)
+						EMWaitReady 0, 0
+						EMWriteScreen "~~~continued from previous note~~~", 4, 	3		'enters a header
+						EMSetCursor 5, 3												'Sets cursor in a good place to start noting.
+						noting_row = 5													'Resets this variable to work in the new locale
+					Else
+						noting_row = 4													'Resets this variable to 4 if we did not need a brand new note.
+					End if
+				End if
+			End if
+		Loop until character_test = " "
+	
+		'Looks at the length of the bullet. This determines the indent for the rest of the info. Going with a maximum indent of 18.
+		If len(bullet) >= 14 then
+			indent_length = 18	'It's four more than the bullet text to account for the asterisk, the colon, and the spaces.
+		Else
+			indent_length = len(bullet) + 4 'It's four more for the reason explained above.
+		End if
+	
+		'Writes the bullet
+		EMWriteScreen "* " & bullet & ": ", noting_row, noting_col
+	
+		'Determines new noting_col based on length of the bullet length (bullet + 4 to account for asterisk, colon, and spaces).
+		noting_col = noting_col + (len(bullet) + 4)
+	
+		'Splits the contents of the variable into an array of words
+		variable_array = split(variable, " ")
+	
+		For each word in variable_array
+			'If the length of the word would go past col 80 (you can't write to col 80), it will kick it to the next line and indent the length of the bullet
+			If len(word) + noting_col > 80 then 
+				noting_row = noting_row + 1
+				noting_col = 3
+			End if
 			
-			'If we get to row 18 (which can't be read here), it will go to the next panel (PF8).
-			If noting_row >= 18 then 
+			'If the next line is row 18 (you can't write to row 18), it will PF8 to get to the next page
+			If noting_row >= 18 then
 				EMSendKey "<PF8>"
 				EMWaitReady 0, 0
 				
@@ -2243,6 +2423,62 @@ Function write_bullet_and_variable_in_case_note(bullet, variable)
 					noting_row = 5													'Resets this variable to work in the new locale
 				Else
 					noting_row = 4													'Resets this variable to 4 if we did not need a brand new note.
+				End if
+			End if
+			
+			'Adds spaces (indent) if we're on col 3 since it's the beginning of a line. We also have to increase the noting col in these instances (so it doesn't overwrite the indent).
+			If noting_col = 3 then 
+				EMWriteScreen space(indent_length), noting_row, noting_col	
+				noting_col = noting_col + indent_length
+			End if
+	
+			'Writes the word and a space using EMWriteScreen
+			EMWriteScreen replace(word, ";", "") & " ", noting_row, noting_col
+			
+			'If a semicolon is seen (we use this to mean "go down a row", it will kick the noting row down by one and add more indent again.
+			If right(word, 1) = ";" then
+				noting_row = noting_row + 1
+				noting_col = 3
+				EMWriteScreen space(indent_length), noting_row, noting_col	
+				noting_col = noting_col + indent_length
+			End if
+			
+			'Increases noting_col the length of the word + 1 (for the space)
+			noting_col = noting_col + (len(word) + 1)
+		Next 
+	
+		'After the array is processed, set the cursor on the following row, in col 3, so that the user can enter in information here (just like writing by hand). If you're on row 18 (which isn't writeable), hit a PF8. If the panel is at the very end (page 5), it will back out and go into another case note, as we did above.
+		EMSetCursor noting_row + 1, 3
+	End if
+End function
+
+Function write_bullet_and_variable_in_CCOL_NOTE(bullet, variable)
+
+	EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
+	noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
+	'The following figures out if we need a new page, or if we need a new case note entirely as well.
+	Do
+		EMReadScreen character_test, 1, noting_row, noting_col 	'Reads a single character at the noting row/col. If there's a character there, it needs to go down a row, and look again until there's nothing. It also needs to trigger these events if it's at or above row 18 (which means we're beyond case note range).
+		If character_test <> " " or noting_row >= 19 then 
+			noting_row = noting_row + 1
+			
+			'If we get to row 18 (which can't be read here), it will go to the next panel (PF8).
+			If noting_row >= 19 then 
+				EMSendKey "<PF8>"
+				EMWaitReady 0, 0
+				
+				'Checks to see if we've reached the end of available case notes. If we are, it will get us to a new case note.
+				EMReadScreen end_of_case_note_check, 1, 24, 2
+				If end_of_case_note_check = "A" then
+					EMSendKey "<PF3>"												'PF3s
+					EMWaitReady 0, 0
+					EMSendKey "<PF9>"												'PF9s (opens new note)
+					EMWaitReady 0, 0
+					EMWriteScreen "~~~continued from previous note~~~", 5, 	3		'enters a header
+					EMSetCursor 6, 3												'Sets cursor in a good place to start noting.
+					noting_row = 6													'Resets this variable to work in the new locale
+				Else
+					noting_row = 5													'Resets this variable to 5 if we did not need a brand new note.
 				End if
 			End if
 		End if
@@ -2285,9 +2521,9 @@ Function write_bullet_and_variable_in_case_note(bullet, variable)
 				EMWaitReady 0, 0
 				EMWriteScreen "~~~continued from previous note~~~", 4, 	3		'enters a header
 				EMSetCursor 5, 3												'Sets cursor in a good place to start noting.
-				noting_row = 5													'Resets this variable to work in the new locale
+				noting_row = 6													'Resets this variable to work in the new locale
 			Else
-				noting_row = 4													'Resets this variable to 4 if we did not need a brand new note.
+				noting_row = 5													'Resets this variable to 4 if we did not need a brand new note.
 			End if
 		End if
 		
@@ -2317,22 +2553,7 @@ Function write_bullet_and_variable_in_case_note(bullet, variable)
 
 End function
 
-'-----------DEPRECIATED AS OF 01/20/2015. LEFT IN HERE FOR COMPATIBILITY PURPOSES.
-Function write_editbox_in_case_note(bullet, variable, length_of_indent) 'length_of_indent is depreciated
-	call write_bullet_and_variable_in_case_note(bullet, variable)
-End function
-
-'-----------DEPRECIATED AS OF 01/20/2015. LEFT IN HERE FOR COMPATIBILITY PURPOSES.
-Function write_new_line_in_case_note(variable)
-	call write_variable_in_CASE_NOTE(variable)
-End function
-
-'-----------DEPRECIATED AS OF 01/20/2015. LEFT IN HERE FOR COMPATIBILITY PURPOSES.
-Function write_new_line_in_SPEC_MEMO(variable_to_enter)
-	call write_variable_in_SPEC_MEMO(variable_to_enter)
-End function
-
-Function write_three_columns_in_case_note(col_01_start_point, col_01_variable, col_02_start_point, col_02_variable, col_03_start_point, col_03_variable)
+Function write_three_columns_in_CASE_NOTE(col_01_start_point, col_01_variable, col_02_start_point, col_02_variable, col_03_start_point, col_03_variable)
   EMGetCursor row, col 
   If (row = 17 and col + (len(x)) >= 80 + 1 ) or (row = 4 and col = 3) then
     EMSendKey "<PF8>"
@@ -2355,23 +2576,51 @@ Function write_three_columns_in_case_note(col_01_start_point, col_01_variable, c
   End if
 End function
 
-'-----------DEPRECIATED AS OF 01/20/2015. LEFT IN HERE FOR COMPATIBILITY PURPOSES.
-FUNCTION write_TIKL_function(variable)
-	call write_variable_in_TIKL(variable)
-END FUNCTION
-
 Function write_variable_in_CASE_NOTE(variable)
-
-	EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
-	noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
-	'The following figures out if we need a new page, or if we need a new case note entirely as well.
-	Do
-		EMReadScreen character_test, 1, noting_row, noting_col 	'Reads a single character at the noting row/col. If there's a character there, it needs to go down a row, and look again until there's nothing. It also needs to trigger these events if it's at or above row 18 (which means we're beyond case note range).
-		If character_test <> " " or noting_row >= 18 then 
-			noting_row = noting_row + 1
+	If trim(variable) <> "" THEN
+		EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
+		noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
+		'The following figures out if we need a new page, or if we need a new case note entirely as well.
+		Do
+			EMReadScreen character_test, 1, noting_row, noting_col 	'Reads a single character at the noting row/col. If there's a character there, it needs to go down a row, and look again until there's nothing. It also needs to trigger these events if it's at or above row 18 (which means we're beyond case note range).
+			If character_test <> " " or noting_row >= 18 then 
+				noting_row = noting_row + 1
+				
+				'If we get to row 18 (which can't be read here), it will go to the next panel (PF8).
+				If noting_row >= 18 then 
+					EMSendKey "<PF8>"
+					EMWaitReady 0, 0
+					
+					'Checks to see if we've reached the end of available case notes. If we are, it will get us to a new case note.
+					EMReadScreen end_of_case_note_check, 1, 24, 2
+					If end_of_case_note_check = "A" then
+						EMSendKey "<PF3>"												'PF3s
+						EMWaitReady 0, 0
+						EMSendKey "<PF9>"												'PF9s (opens new note)
+						EMWaitReady 0, 0
+						EMWriteScreen "~~~continued from previous note~~~", 4, 	3		'enters a header
+						EMSetCursor 5, 3												'Sets cursor in a good place to start noting.
+						noting_row = 5													'Resets this variable to work in the new locale
+					Else
+						noting_row = 4													'Resets this variable to 4 if we did not need a brand new note.
+					End if
+				End if
+			End if
+		Loop until character_test = " "
+	
+		'Splits the contents of the variable into an array of words
+		variable_array = split(variable, " ")
+	
+		For each word in variable_array
+	
+			'If the length of the word would go past col 80 (you can't write to col 80), it will kick it to the next line and indent the length of the bullet
+			If len(word) + noting_col > 80 then 
+				noting_row = noting_row + 1
+				noting_col = 3
+			End if
 			
-			'If we get to row 18 (which can't be read here), it will go to the next panel (PF8).
-			If noting_row >= 18 then 
+			'If the next line is row 18 (you can't write to row 18), it will PF8 to get to the next page
+			If noting_row >= 18 then
 				EMSendKey "<PF8>"
 				EMWaitReady 0, 0
 				
@@ -2389,6 +2638,48 @@ Function write_variable_in_CASE_NOTE(variable)
 					noting_row = 4													'Resets this variable to 4 if we did not need a brand new note.
 				End if
 			End if
+	
+			'Writes the word and a space using EMWriteScreen
+			EMWriteScreen replace(word, ";", "") & " ", noting_row, noting_col
+			
+			'Increases noting_col the length of the word + 1 (for the space)
+			noting_col = noting_col + (len(word) + 1)
+		Next 
+	
+		'After the array is processed, set the cursor on the following row, in col 3, so that the user can enter in information here (just like writing by hand). If you're on row 18 (which isn't writeable), hit a PF8. If the panel is at the very end (page 5), it will back out and go into another case note, as we did above.
+		EMSetCursor noting_row + 1, 3
+	End if
+End function
+
+Function write_variable_in_CCOL_NOTE(variable)
+
+	EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
+	noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
+	'The following figures out if we need a new page, or if we need a new case note entirely as well.
+	Do
+		EMReadScreen character_test, 1, noting_row, noting_col 	'Reads a single character at the noting row/col. If there's a character there, it needs to go down a row, and look again until there's nothing. It also needs to trigger these events if it's at or above row 18 (which means we're beyond case note range).
+		If character_test <> " " or noting_row >= 19 then 
+			noting_row = noting_row + 1
+			
+			'If we get to row 19 (which can't be read here), it will go to the next panel (PF8).
+			If noting_row >= 19 then 
+				EMSendKey "<PF8>"
+				EMWaitReady 0, 0
+				
+				'Checks to see if we've reached the end of available case notes. If we are, it will get us to a new case note.
+				EMReadScreen end_of_case_note_check, 1, 24, 2
+				If end_of_case_note_check = "A" then
+					EMSendKey "<PF3>"												'PF3s
+					EMWaitReady 0, 0
+					EMSendKey "<PF9>"												'PF9s (opens new note)
+					EMWaitReady 0, 0
+					EMWriteScreen "~~~continued from previous note~~~", 4, 	3		'enters a header
+					EMSetCursor 5, 3												'Sets cursor in a good place to start noting.
+					noting_row = 6													'Resets this variable to work in the new locale
+				Else
+					noting_row = 5													'Resets this variable to 5 if we did not need a brand new note.
+				End if
+			End if
 		End if
 	Loop until character_test = " "
 
@@ -2403,8 +2694,8 @@ Function write_variable_in_CASE_NOTE(variable)
 			noting_col = 3
 		End if
 		
-		'If the next line is row 18 (you can't write to row 18), it will PF8 to get to the next page
-		If noting_row >= 18 then
+		'If the next line is row 19 (you can't write to row 19), it will PF8 to get to the next page
+		If noting_row >= 19 then
 			EMSendKey "<PF8>"
 			EMWaitReady 0, 0
 			
@@ -2417,9 +2708,9 @@ Function write_variable_in_CASE_NOTE(variable)
 				EMWaitReady 0, 0
 				EMWriteScreen "~~~continued from previous note~~~", 4, 	3		'enters a header
 				EMSetCursor 5, 3												'Sets cursor in a good place to start noting.
-				noting_row = 5													'Resets this variable to work in the new locale
+				noting_row = 6													'Resets this variable to work in the new locale
 			Else
-				noting_row = 4													'Resets this variable to 4 if we did not need a brand new note.
+				noting_row = 5													'Resets this variable to 5 if we did not need a brand new note.
 			End if
 		End if
 
@@ -2529,6 +2820,38 @@ Function write_variable_in_TIKL(variable)
 	IF tikl_line_five <> "" THEN EMWriteScreen tikl_line_five, 13, 3
 	transmit
 End function
+
+'--------DEPRECIATED FUNCTIONS KEPT FOR COMPATIBILITY PURPOSES, THE NEW FUNCTIONS ARE INDICATED WITHIN THE OLD FUNCTIONS
+Function ERRR_screen_check 'Checks for error prone cases				'DEPRECIATED AS OF 01/20/2015.
+	EMReadScreen ERRR_check, 4, 2, 52	'Now included in NAVIGATE_TO_MAXIS_SCREEN
+	If ERRR_check = "ERRR" then transmit
+End Function
+
+Function maxis_check_function											'DEPRECIATED AS OF 01/20/2015.
+	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
+End function
+
+Function navigate_to_screen(x, y)										'DEPRECIATED AS OF 03/09/2015.
+	call navigate_to_MAXIS_screen(x, y)
+End function
+
+Function write_editbox_in_case_note(bullet, variable, length_of_indent) 'DEPRECIATED AS OF 01/20/2015. 
+	call write_bullet_and_variable_in_case_note(bullet, variable)
+End function
+
+Function write_new_line_in_case_note(variable)							'DEPRECIATED AS OF 01/20/2015. 
+	call write_variable_in_CASE_NOTE(variable)
+End function
+
+Function write_new_line_in_SPEC_MEMO(variable_to_enter)					'DEPRECIATED AS OF 01/20/2015. 
+	call write_variable_in_SPEC_MEMO(variable_to_enter)
+End function
+
+FUNCTION write_TIKL_function(variable)									'DEPRECIATED AS OF 01/20/2015.
+	call write_variable_in_TIKL(variable)
+END FUNCTION
+
+
 
 '<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
 If beta_agency = True then 
