@@ -1535,6 +1535,17 @@ Function create_MAXIS_friendly_date(date_variable, variable_length, screen_row, 
 	EMWriteScreen right(var_year, 2), screen_row, screen_col + 6
 End function
 
+FUNCTION create_MAXIS_friendly_date_three_spaces_between(date_variable, variable_length, screen_row, screen_col) 
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))		'determines the date based on the variable length: month 
+	If len(var_month) = 1 then var_month = "0" & var_month				'adds a '0' in front of a single digit month
+	EMWriteScreen var_month, screen_row, screen_col					'writes in var_month at coordinates set in FUNCTION line
+	var_day = datepart("d", dateadd("d", variable_length, date_variable)) 		'determines the date based on the variable length: day
+	If len(var_day) = 1 then var_day = "0" & var_day 				'adds a '0' in front of a single digit day
+	EMWriteScreen var_day, screen_row, screen_col + 5 				'writes in var_day at coordinates set in FUNCTION line, and starts 5 columns into date field in MAXIS
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable)) 	'determines the date based on the variable length: year
+	EMWriteScreen right(var_year, 2), screen_row, screen_col + 10 			'writes in var_year at coordinates set in FUNCTION line , and starts 5 columns into date field in MAXIS
+END FUNCTION
+
 'Creates a MM DD YYYY date entry at screen_row and screen_col. The variable_length variable is the amount of days to offset the date entered. I.e., 10 for 10 days, -10 for 10 days in the past, etc.
 FUNCTION create_MAXIS_friendly_date_with_YYYY(date_variable, variable_length, screen_row, screen_col) 
 	var_month = datepart("m", dateadd("d", variable_length, date_variable))
@@ -1545,6 +1556,17 @@ FUNCTION create_MAXIS_friendly_date_with_YYYY(date_variable, variable_length, sc
 	EMWriteScreen var_day, screen_row, screen_col + 3
 	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
 	EMWriteScreen var_year, screen_row, screen_col + 6
+END FUNCTION
+
+FUNCTION create_MAXIS_friendly_phone_number(phone_number_variable, screen_row, screen_col)
+	WITH (new RegExp)                                                            	'Uses RegExp to bring in special string functions to remove the unneeded strings
+                .Global = True                                                   	'I don't know what this means but David made it work so we're going with it
+                .Pattern = "\D"                                                	 	'Again, no clue. Just do it.
+                phone_number_variable = .Replace(phone_number_variable, "")    	 	'This replaces the non-digits of the phone number with nothing. That leaves us with a bunch of numbers
+	END WITH
+	EMWriteScreen left(phone_number_variable, 3), screen_row, screen_col 		'writes in left 3 digits of the phone number in variable
+	EMWriteScreen mid(phone_number_variable, 4, 3), screen_row, screen_col + 6	'writes in middle 3 digits of the phone number in variable
+	EMWriteScreen right(phone_number_variable, 4), screen_row, screen_col + 12	'writes in right 4 digits of the phone number in variable
 END FUNCTION
 
 Function create_panel_if_nonexistent()
