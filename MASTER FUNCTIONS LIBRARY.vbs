@@ -10,30 +10,47 @@
 '
 'Here's the code to add (remove comments before using):
 '
-'LOADING ROUTINE FUNCTIONS---------------------------------------------------------------
-'url = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/master/MASTER FUNCTIONS LIBRARY.vbs"
-'SET req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
-'req.open "GET", url, FALSE									'Attempts to open the URL
-'req.send													'Sends request
-'IF req.Status = 200 THEN									'200 means great success
-'	Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
-'	Execute req.responseText								'Executes the script code
-'ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
-'	MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
-'			vbCr & _
-'			"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
-'			vbCr & _
-'			"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
-'			vbTab & "- The name of the script you are running." & vbCr &_
-'			vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
-'			vbTab & "- The name and email for an employee from your IT department," & vbCr & _
-'			vbTab & vbTab & "responsible for network issues." & vbCr &_
-'			vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
-'			vbCr & _
-'			"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
-'			vbCr &_
-'			"URL: " & url
-'			script_end_procedure("Script ended due to error connecting to GitHub.")
+''LOADING FUNCTIONS LIBRARY FROM GITHUB REPOSITORY===========================================================================
+'IF IsEmpty(FuncLib_URL) = TRUE THEN	'Shouldn't load FuncLib if it already loaded once
+'	IF run_locally = FALSE or run_locally = "" THEN		'If the scripts are set to run locally, it skips this and uses an FSO below.
+'		IF default_directory = "C:\DHS-MAXIS-Scripts\Script Files\" THEN			'If the default_directory is C:\DHS-MAXIS-Scripts\Script Files, you're probably a scriptwriter and should use the master branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/master/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		ELSEIF beta_agency = "" or beta_agency = True then							'If you're a beta agency, you should probably use the beta branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/BETA/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		Else																		'Everyone else should use the release branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/RELEASE/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		End if
+'		SET req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a FuncLib_URL
+'		req.open "GET", FuncLib_URL, FALSE							'Attempts to open the FuncLib_URL
+'		req.send													'Sends request
+'		IF req.Status = 200 THEN									'200 means great success
+'			Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
+'			Execute req.responseText								'Executes the script code
+'		ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
+'			MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
+'					vbCr & _
+'					"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
+'					vbCr & _
+'					"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
+'					vbTab & "- The name of the script you are running." & vbCr &_
+'					vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
+'					vbTab & "- The name and email for an employee from your IT department," & vbCr & _
+'					vbTab & vbTab & "responsible for network issues." & vbCr &_
+'					vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
+'					vbCr & _
+'					"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
+'					vbCr &_
+'					"URL: " & FuncLib_URL
+'					script_end_procedure("Script ended due to error connecting to GitHub.")
+'		END IF
+'	ELSE
+'		FuncLib_URL = "C:\BZS-FuncLib\MASTER FUNCTIONS LIBRARY.vbs"
+'		Set run_another_script_fso = CreateObject("Scripting.FileSystemObject")
+'		Set fso_command = run_another_script_fso.OpenTextFile(FuncLib_URL)
+'		text_from_the_other_script = fso_command.ReadAll
+'		fso_command.Close
+'		Execute text_from_the_other_script
+'	END IF
 'END IF
 
 'GLOBAL CONSTANTS----------------------------------------------------------------------------------------------------
@@ -45,10 +62,6 @@ cancel = 0			'Value for cancel button in dialogs
 OK = -1			'Value for OK button in dialogs
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
-
-Function magic_escape_string(str)
-	magic_escape_string = replace(str,"@","@@") ' This allows use of the @ symbol for EMSendkey
-End Function
 
 Function add_ACCI_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
   EMReadScreen ACCI_date, 8, 6, 73
@@ -1065,22 +1078,48 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
   Elseif panel_read_from = "INSA" then '----------------------------------------------------------------------------------------------------INSA
     EMReadScreen INSA_amt, 1, 2, 78
     If INSA_amt <> 0 then
-      EMReadScreen INSA_name, 38, 10, 38
-      INSA_name = replace(INSA_name, "_", "")
-      INSA_name = split(INSA_name)
-      For each word in INSA_name
-	    If trim(word) <> "" then
-          first_letter_of_word = ucase(left(word, 1))
-          rest_of_word = LCase(right(word, len(word) -1))
-          If len(word) > 4 then
-            variable_written_to = variable_written_to & first_letter_of_word & rest_of_word & " "
-          Else
-            variable_written_to = variable_written_to & word & " "
-          End if
-		End if
-      Next
-      variable_written_to = trim(variable_written_to) & "; "
-    End if
+      'Runs once per INSA screen
+		For i = 1 to INSA_amt step 1
+			insurance_name = ""
+			'Goes to the correct screen
+			EMWriteScreen "0" & i, 20, 79
+			transmit
+			'Gather Insurance Name
+			EMReadScreen INSA_name, 38, 10, 38
+			INSA_name = replace(INSA_name, "_", "")
+			INSA_name = split(INSA_name)
+			For each word in INSA_name
+				If trim(word) <> "" then
+						first_letter_of_word = ucase(left(word, 1))
+						rest_of_word = LCase(right(word, len(word) -1))
+						If len(word) > 4 then
+							insurance_name = insurance_name & first_letter_of_word & rest_of_word & " "
+						Else
+							insurance_name = insurance_name & word & " "
+						End if
+				End if
+			Next
+			'Create a list of members covered by this insurance
+			y = 15 : x = 30
+			insured_count = 0
+			member_list = ""
+			Do
+				EMReadScreen insured_member, 2, y, x
+				If insured_member <> "__" then 
+					if member_list = "" then member_list = insured_member
+					if member_list <> "" then member_list = member_list & ", " & insured_member
+					x = x + 4
+					If x = 70 then
+						x = 30 : y = 16
+					End If
+				End If
+			loop until insured_member = "__"
+			'Retain "variable_written_to" as is while also adding members covered by the insurance policy
+			'Example - "Members: 01, 03, 07 are covered by Blue Cross Blue Shield; " 
+			variable_written_to = variable_written_to & "Members: " & member_list & " are covered by " & trim(insurance_name) & "; "
+		Next
+		'This will loop and add the above statement for all insurance policies listed
+	End if
   Elseif panel_read_from = "JOBS" then '----------------------------------------------------------------------------------------------------JOBS
 	For each HH_member in HH_member_array  
       EMWriteScreen HH_member, 20, 76
@@ -1410,19 +1449,55 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     		  month_count = month_count + 1
   	   LOOP until month_count = 36
   	PF3
+	EmreadScreen read_WREG_status, 2, 8, 50
+	If read_WREG_status = 03 THEN  WREG_status = "WREG = incap"
+	If read_WREG_status = 04 THEN  WREG_status = "WREG = resp for incap HH memb"
+	If read_WREG_status = 05 THEN  WREG_status = "WREG = age 60+"
+	If read_WREG_status = 06 THEN  WREG_status = "WREG = < age 16"
+	If read_WREG_status = 07 THEN  WREG_status = "WREG = age 16-17, live w/prnt/crgvr"
+	If read_WREG_status = 08 THEN  WREG_status = "WREG = resp for child < 6 yrs old"
+	If read_WREG_status = 09 THEN  WREG_status = "WREG = empl 30 hrs/wk or equiv"
+	If read_WREG_status = 10 THEN  WREG_status = "WREG = match grant part"
+	If read_WREG_status = 11 THEN  WREG_status = "WREG = rec/app for unemp ins"
+	If read_WREG_status = 12 THEN  WREG_status = "WREG = in schl, train prog or higher ed"
+	If read_WREG_status = 13 THEN  WREG_status = "WREG = in CD prog"
+	If read_WREG_status = 14 THEN  WREG_status = "WREG = rec MFIP"
+	If read_WREG_status = 20 THEN  WREG_status = "WREG = pend/rec DWP or WB"
+	If read_WREG_status = 22 THEN  WREG_status = "WREG = app for SSI"
+	If read_WREG_status = 15 THEN  WREG_status = "WREG = age 16-17 not live w/ prnt/crgvr"
+	If read_WREG_status = 16 THEN  WREG_status = "WREG = 50-59 yrs old"
+	If read_WREG_status = 21 THEN  WREG_status = "WREG = resp for child < 18"
+	If read_WREG_status = 17 THEN  WREG_status = "WREG = rec RCA or GA"
+	If read_WREG_status = 18 THEN  WREG_status = "WREG = provide home schl"
+	If read_WREG_status = 30 THEN  WREG_status = "WREG = mand FSET part"
+	If read_WREG_status = 02 THEN  WREG_status = "WREG = non-coop w/ FSET"
+	If read_WREG_status = 33 THEN  WREG_status = "WREG = non-coop w/ referral"
+	If read_WREG_status = "__" THEN  WREG_status = "WREG = blank"
+	
 	EmreadScreen read_abawd_status, 2, 13, 50
-	If read_abawd_status = 10 or read_abawd_status = 11 or read_abawd_status = 13 then
-	  abawd_status = "Client is ABAWD and has used " & abawd_counted_months & " months"
-	else
-	  abawd_status = "Client is not ABAWD"
-	end if
-      IF second_abawd_period <> 0 THEN abawd_status = "CL is ABAWD and has used second 3-month period"
-	variable_written_to = variable_written_to & "Member " & HH_member & "- " & abawd_status & ".; "
+	If read_abawd_status = 01 THEN  abawd_status = "ABAWD = work reg exempt."
+      If read_abawd_status = 02 THEN  abawd_status = "ABAWD = < age 18."
+	If read_abawd_status = 03 THEN  abawd_status = "ABAWD = age 50+."
+	If read_abawd_status = 04 THEN  abawd_status = "ABAWD = crgvr of minor child."		
+	If read_abawd_status = 05 THEN  abawd_status = "ABAWD = pregnant."
+	If read_abawd_status = 06 THEN  abawd_status = "ABAWD = emp ave 20 hrs/wk."
+	If read_abawd_status = 07 THEN  abawd_status = "ABAWD = work exp participant."	
+	If read_abawd_status = 08 THEN  abawd_status = "ABAWD = othr E & T service."
+	If read_abawd_status = 09 THEN  abawd_status = "ABAWD = reside in waiver area."
+	If read_abawd_status = 10 THEN  abawd_status = "ABAWD = ABAWD & has used " & abawd_counted_months & " mo"
+	If read_abawd_status = 11 THEN  abawd_status = "ABAWD = using 2nd three mo period of elig."
+	If read_abawd_status = 12 THEN  abawd_status = "ABAWD = RCA or GA recip."
+	If read_abawd_status = 13 THEN  abawd_status = "ABAWD = ABAWD extension."
+	If read_abawd_status = "__" THEN  abawd_status = "WREG = blank"
+
+
+	variable_written_to = variable_written_to & "Member " & HH_member & "- " & WREG_status & ", " & abawd_status & "; "
      END IF
     Next
   End if
   variable_written_to = trim(variable_written_to) '-----------------------------------------------------------------------------------------cleaning up editbox
   if right(variable_written_to, 1) = ";" then variable_written_to = left(variable_written_to, len(variable_written_to) - 1)
+
 
 End function
 
@@ -1433,6 +1508,14 @@ function back_to_SELF
     EMReadScreen SELF_check, 4, 2, 50
   Loop until SELF_check = "SELF"
 End function
+
+'This function asks if you want to cancel. If you say yes, it sends StopScript.
+FUNCTION cancel_confirmation
+	If ButtonPressed = 0 then 
+		cancel_confirm = MsgBox("Are you sure you want to cancel the script? Press YES to cancel. Press NO to return to the script.", vbYesNo)
+		If cancel_confirm = vbYes then stopscript
+	End if
+END FUNCTION
 
 Function check_for_MAXIS(end_script)
 	Do
@@ -1448,6 +1531,25 @@ Function check_for_MAXIS(end_script)
 		End if
 	Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS "
 End function
+
+'This function converts an array into a droplist to be used by a dialog
+Function convert_array_to_droplist_items(array_to_convert, output_droplist_box)
+	For each item in array_to_convert
+		If output_droplist_box = "" then 
+			output_droplist_box = item
+		Else
+			output_droplist_box = output_droplist_box & chr(9) & item
+		End if
+	Next
+End Function
+
+'This function converts a date (MM/DD/YY or MM/DD/YYYY format) into a separate footer month and footer year variables. For best results, always use footer_month and footer_year as the appropriate variables.
+FUNCTION convert_date_into_MAXIS_footer_month(date_to_convert, footer_month, footer_year)
+	footer_month = DatePart("m", date_to_convert)						'Uses DatePart function to copy the month from date_to_convert into the footer_month variable.
+	IF Len(footer_month) = 1 THEN footer_month = "0" & footer_month		'Uses Len function to determine if the footer_month is a single digit month. If so, it adds a 0, which MAXIS needs.
+	footer_year = DatePart("yyyy", date_to_convert)						'Uses DatePart function to copy the year from date_to_convert into the footer_year variable.
+	footer_year = Right(footer_year, 2)									'Uses Right function to reduce the footer_year variable to it's right 2 characters (allowing for a 2 digit footer year).
+END FUNCTION
 
 'This function converts a numeric digit to an Excel column, up to 104 digits (columns).
 function convert_digit_to_excel_column(col_in_excel)
@@ -1500,16 +1602,51 @@ Function create_array_of_all_active_x_numbers_in_county(array_name, county_code)
 	array_name = split(array_name)
 End function
 
+'Creates a MM DD YY date entry at screen_row and screen_col. The variable_length variable is the amount of days to offset the date entered. I.e., 10 for 10 days, -10 for 10 days in the past, etc.
 Function create_MAXIS_friendly_date(date_variable, variable_length, screen_row, screen_col) 
-  var_month = datepart("m", dateadd("d", variable_length, date_variable))
-  If len(var_month) = 1 then var_month = "0" & var_month
-  EMWriteScreen var_month, screen_row, screen_col
-  var_day = datepart("d", dateadd("d", variable_length, date_variable))
-  If len(var_day) = 1 then var_day = "0" & var_day
-  EMWriteScreen var_day, screen_row, screen_col + 3
-  var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
-  EMWriteScreen right(var_year, 2), screen_row, screen_col + 6
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))
+	If len(var_month) = 1 then var_month = "0" & var_month
+	EMWriteScreen var_month, screen_row, screen_col
+	var_day = datepart("d", dateadd("d", variable_length, date_variable))
+	If len(var_day) = 1 then var_day = "0" & var_day
+	EMWriteScreen var_day, screen_row, screen_col + 3
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
+	EMWriteScreen right(var_year, 2), screen_row, screen_col + 6
 End function
+
+FUNCTION create_MAXIS_friendly_date_three_spaces_between(date_variable, variable_length, screen_row, screen_col) 
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))		'determines the date based on the variable length: month 
+	If len(var_month) = 1 then var_month = "0" & var_month				'adds a '0' in front of a single digit month
+	EMWriteScreen var_month, screen_row, screen_col					'writes in var_month at coordinates set in FUNCTION line
+	var_day = datepart("d", dateadd("d", variable_length, date_variable)) 		'determines the date based on the variable length: day
+	If len(var_day) = 1 then var_day = "0" & var_day 				'adds a '0' in front of a single digit day
+	EMWriteScreen var_day, screen_row, screen_col + 5 				'writes in var_day at coordinates set in FUNCTION line, and starts 5 columns into date field in MAXIS
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable)) 	'determines the date based on the variable length: year
+	EMWriteScreen right(var_year, 2), screen_row, screen_col + 10 			'writes in var_year at coordinates set in FUNCTION line , and starts 5 columns into date field in MAXIS
+END FUNCTION
+
+'Creates a MM DD YYYY date entry at screen_row and screen_col. The variable_length variable is the amount of days to offset the date entered. I.e., 10 for 10 days, -10 for 10 days in the past, etc.
+FUNCTION create_MAXIS_friendly_date_with_YYYY(date_variable, variable_length, screen_row, screen_col) 
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))
+	IF len(var_month) = 1 THEN var_month = "0" & var_month
+	EMWriteScreen var_month, screen_row, screen_col
+	var_day = datepart("d", dateadd("d", variable_length, date_variable))
+	IF len(var_day) = 1 THEN var_day = "0" & var_day
+	EMWriteScreen var_day, screen_row, screen_col + 3
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
+	EMWriteScreen var_year, screen_row, screen_col + 6
+END FUNCTION
+
+FUNCTION create_MAXIS_friendly_phone_number(phone_number_variable, screen_row, screen_col)
+	WITH (new RegExp)                                                            	'Uses RegExp to bring in special string functions to remove the unneeded strings
+                .Global = True                                                   	'I don't know what this means but David made it work so we're going with it
+                .Pattern = "\D"                                                	 	'Again, no clue. Just do it.
+                phone_number_variable = .Replace(phone_number_variable, "")    	 	'This replaces the non-digits of the phone number with nothing. That leaves us with a bunch of numbers
+	END WITH
+	EMWriteScreen left(phone_number_variable, 3), screen_row, screen_col 		'writes in left 3 digits of the phone number in variable
+	EMWriteScreen mid(phone_number_variable, 4, 3), screen_row, screen_col + 6	'writes in middle 3 digits of the phone number in variable
+	EMWriteScreen right(phone_number_variable, 4), screen_row, screen_col + 12	'writes in right 4 digits of the phone number in variable
+END FUNCTION
 
 Function create_panel_if_nonexistent()
 	EMWriteScreen reference_number , 20, 76
@@ -1539,12 +1676,6 @@ Function create_panel_if_nonexistent()
 			Transmit
 		End If
 	End If
-End Function
-
-'-------------------THIS IS NOW DEPRECIATED AS THE NAVIGATE_TO_SCREEN DOES THIS. A FIND/REPLACE SHOULD BE EXECUTED ON THE SCRIPTS TO REMOVE IT FROM EXISTENCE
-Function ERRR_screen_check 'Checks for error prone cases
-	EMReadScreen ERRR_check, 4, 2, 52
-	If ERRR_check = "ERRR" then transmit
 End Function
 
 Function end_excel_and_script
@@ -1606,11 +1737,6 @@ Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
 		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
 		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
 	End if
-End function
-
-'-----------DEPRECIATED AS OF 01/20/2015. LEFT IN HERE FOR COMPATIBILITY PURPOSES.
-Function maxis_check_function
-	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
 End function
 
 Function HH_member_custom_dialog(HH_member_array)
@@ -1732,6 +1858,102 @@ function log_usage_stats_without_closing 'For use when logging usage stats but t
 		"VALUES ('" & user_ID & "', '" & date & "', '" & time & "', '" & name_of_script & "', " & script_run_time & ", '" & "" & "')", objConnection, adOpenStatic, adLockOptimistic
 	End if
 end function
+
+'This function navigates to various panels in MAXIS. You need to name your buttons using the button names in the function.
+FUNCTION MAXIS_dialog_navigation
+	'This part works with the prev/next buttons on several of our dialogs. You need to name your buttons prev_panel_button, next_panel_button, prev_memb_button, and next_memb_button in order to use them.
+	EMReadScreen STAT_check, 4, 20, 21
+	If STAT_check = "STAT" then
+		If ButtonPressed = prev_panel_button then 
+			EMReadScreen current_panel, 1, 2, 73
+			EMReadScreen amount_of_panels, 1, 2, 78
+			If current_panel = 1 then new_panel = current_panel
+			If current_panel > 1 then new_panel = current_panel - 1
+			If amount_of_panels > 1 then EMWriteScreen "0" & new_panel, 20, 79
+			transmit
+		ELSEIF ButtonPressed = next_panel_button then 
+			EMReadScreen current_panel, 1, 2, 73
+			EMReadScreen amount_of_panels, 1, 2, 78
+			If current_panel < amount_of_panels then new_panel = current_panel + 1
+			If current_panel = amount_of_panels then new_panel = current_panel
+			If amount_of_panels > 1 then EMWriteScreen "0" & new_panel, 20, 79
+			transmit
+		ELSEIF ButtonPressed = prev_memb_button then 
+			HH_memb_row = HH_memb_row - 1
+			EMReadScreen prev_HH_memb, 2, HH_memb_row, 3
+			If isnumeric(prev_HH_memb) = False then
+				HH_memb_row = HH_memb_row + 1
+			Else
+				EMWriteScreen prev_HH_memb, 20, 76
+				EMWriteScreen "01", 20, 79
+			End if
+			transmit
+		ELSEIF ButtonPressed = next_memb_button then 
+			HH_memb_row = HH_memb_row + 1
+			EMReadScreen next_HH_memb, 2, HH_memb_row, 3
+			If isnumeric(next_HH_memb) = False then
+				HH_memb_row = HH_memb_row + 1
+			Else
+				EMWriteScreen next_HH_memb, 20, 76
+				EMWriteScreen "01", 20, 79
+			End if
+			transmit
+		End if
+	End if
+	
+	'This part takes care of remaining navigation buttons, designed to go to a single panel.
+	If ButtonPressed = ABPS_button then call navigate_to_screen("stat", "ABPS")
+	If ButtonPressed = ACCI_button then call navigate_to_screen("stat", "ACCI")
+	If ButtonPressed = ACCT_button then call navigate_to_screen("stat", "ACCT")
+	If ButtonPressed = ADDR_button then call navigate_to_screen("stat", "ADDR")
+	If ButtonPressed = ALTP_button then call navigate_to_screen("stat", "ALTP")
+	If ButtonPressed = AREP_button then call navigate_to_screen("stat", "AREP")
+	If ButtonPressed = BILS_button then call navigate_to_screen("stat", "BILS")
+	If ButtonPressed = BUSI_button then call navigate_to_screen("stat", "BUSI")
+	If ButtonPressed = CARS_button then call navigate_to_screen("stat", "CARS")
+	If ButtonPressed = CASH_button then call navigate_to_screen("stat", "CASH")
+	If ButtonPressed = COEX_button then call navigate_to_screen("stat", "COEX")
+	If ButtonPressed = DCEX_button then call navigate_to_screen("stat", "DCEX")
+	If ButtonPressed = DIET_button then call navigate_to_screen("stat", "DIET")
+	If ButtonPressed = DISA_button then call navigate_to_screen("stat", "DISA")
+	If ButtonPressed = EATS_button then call navigate_to_screen("stat", "EATS")
+	If ButtonPressed = ELIG_DWP_button then call navigate_to_screen("elig", "DWP_")
+	If ButtonPressed = ELIG_FS_button then call navigate_to_screen("elig", "FS__")
+	If ButtonPressed = ELIG_GA_button then call navigate_to_screen("elig", "GA__")
+	If ButtonPressed = ELIG_HC_button then call navigate_to_screen("elig", "HC__")
+	If ButtonPressed = ELIG_MFIP_button then call navigate_to_screen("elig", "MFIP")
+	If ButtonPressed = ELIG_MSA_button then call navigate_to_screen("elig", "MSA_")
+	If ButtonPressed = ELIG_WB_button then call navigate_to_screen("elig", "WB__")
+	If ButtonPressed = FACI_button then call navigate_to_screen("stat", "FACI")
+	If ButtonPressed = FMED_button then call navigate_to_screen("stat", "FMED")
+	If ButtonPressed = HCRE_button then call navigate_to_screen("stat", "HCRE")
+	If ButtonPressed = HEST_button then call navigate_to_screen("stat", "HEST")
+	If ButtonPressed = IMIG_button then call navigate_to_screen("stat", "IMIG")
+	If ButtonPressed = INSA_button then call navigate_to_screen("stat", "INSA")
+	If ButtonPressed = JOBS_button then call navigate_to_screen("stat", "JOBS")
+	If ButtonPressed = MEDI_button then call navigate_to_screen("stat", "MEDI")
+	If ButtonPressed = MEMB_button then call navigate_to_screen("stat", "MEMB")
+	If ButtonPressed = MEMI_button then call navigate_to_screen("stat", "MEMI")
+	If ButtonPressed = MONT_button then call navigate_to_screen("stat", "MONT")
+	If ButtonPressed = OTHR_button then call navigate_to_screen("stat", "OTHR")
+	If ButtonPressed = PBEN_button then call navigate_to_screen("stat", "PBEN")
+	If ButtonPressed = PDED_button then call navigate_to_screen("stat", "PDED")
+	If ButtonPressed = PREG_button then call navigate_to_screen("stat", "PREG")
+	If ButtonPressed = PROG_button then call navigate_to_screen("stat", "PROG")
+	If ButtonPressed = RBIC_button then call navigate_to_screen("stat", "RBIC")
+	If ButtonPressed = REST_button then call navigate_to_screen("stat", "REST")
+	If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
+	If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
+	If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
+	If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
+	If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
+	If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
+	If ButtonPressed = SHEL_button then call navigate_to_screen("stat", "SHEL")
+	If ButtonPressed = SWKR_button then call navigate_to_screen("stat", "SWKR")
+	If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
+	If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
+	If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+END FUNCTION
 
 Function memb_navigation_next
   HH_memb_row = HH_memb_row + 1
@@ -2046,6 +2268,16 @@ function PF20
   EMWaitReady 0, 0
 end function
 
+'Asks the user if they want to proceed. Result_of_msgbox parameter returns TRUE if Yes is pressed, and FALSE if No is pressed.
+FUNCTION proceed_confirmation(result_of_msgbox)
+	If ButtonPressed = -1 then 
+		proceed_confirm = MsgBox("Are you sure you want to proceed? Press Yes to continue, No to return to the previous screen, and Cancel to end the script.", vbYesNoCancel)
+		If proceed_confirm = vbCancel then stopscript
+		If proceed_confirm = vbYes then result_of_msgbox = TRUE
+		If proceed_confirm = vbNo then result_of_msgbox = FALSE
+	End if
+END FUNCTION
+
 function run_another_script(script_path)
   Set run_another_script_fso = CreateObject("Scripting.FileSystemObject")
   Set fso_command = run_another_script_fso.OpenTextFile(script_path)
@@ -2137,6 +2369,15 @@ function script_end_procedure_wsh(closing_message) 'For use when running a scrip
 	Wscript.Quit
 end function
 
+'Navigates you to a blank case note, presses PF9, and checks to make sure you're in edit mode (keeping you from writing all of the case note on an inquiry screen).
+FUNCTION start_a_blank_CASE_NOTE
+	call navigate_to_screen("case", "note")
+	PF9
+	EMReadScreen case_note_check, 17, 2, 33
+	EMReadScreen mode_check, 1, 20, 09
+	If case_note_check <> "Case Notes (NOTE)" or mode_check <> "A" then script_end_procedure("The script can't open a case note. Are you in inquiry? Check MAXIS and try again. The script will now stop.")
+END FUNCTION
+
 function stat_navigation
   EMReadScreen STAT_check, 4, 20, 21
   If STAT_check = "STAT" then
@@ -2212,7 +2453,7 @@ Function worker_county_code_determination(worker_county_code_variable, two_digit
 End function
 
 Function write_bullet_and_variable_in_CASE_NOTE(bullet, variable)
-	If variable <> "" then
+	If trim(variable) <> "" then
 		EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
 		noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
 		'The following figures out if we need a new page, or if we need a new case note entirely as well.
@@ -2437,7 +2678,7 @@ Function write_three_columns_in_CASE_NOTE(col_01_start_point, col_01_variable, c
 End function
 
 Function write_variable_in_CASE_NOTE(variable)
-	If variable <> "" THEN
+	If trim(variable) <> "" THEN
 		EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
 		noting_col = 3											'The noting col should always be 3 at this point, because it's the beginning. But, this will be dynamically recreated each time.
 		'The following figures out if we need a new page, or if we need a new case note entirely as well.
@@ -2682,6 +2923,15 @@ Function write_variable_in_TIKL(variable)
 End function
 
 '--------DEPRECIATED FUNCTIONS KEPT FOR COMPATIBILITY PURPOSES, THE NEW FUNCTIONS ARE INDICATED WITHIN THE OLD FUNCTIONS
+Function ERRR_screen_check 'Checks for error prone cases				'DEPRECIATED AS OF 01/20/2015.
+	EMReadScreen ERRR_check, 4, 2, 52	'Now included in NAVIGATE_TO_MAXIS_SCREEN
+	If ERRR_check = "ERRR" then transmit
+End Function
+
+Function maxis_check_function											'DEPRECIATED AS OF 01/20/2015.
+	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
+End function
+
 Function navigate_to_screen(x, y)										'DEPRECIATED AS OF 03/09/2015.
 	call navigate_to_MAXIS_screen(x, y)
 End function
@@ -2701,6 +2951,8 @@ End function
 FUNCTION write_TIKL_function(variable)									'DEPRECIATED AS OF 01/20/2015.
 	call write_variable_in_TIKL(variable)
 END FUNCTION
+
+
 
 '<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
 If beta_agency = True then 
