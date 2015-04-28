@@ -2647,6 +2647,11 @@ Function write_three_columns_in_CASE_NOTE(col_01_start_point, col_01_variable, c
   End if
 End function
 
+FUNCTION write_value_and_transmit(input_value, MAXIS_row, MAXIS_col)
+	EMWriteScreen input_value, MAXIS_row, MAXIS_col
+	transmit
+END FUNCTION
+
 Function write_variable_in_CASE_NOTE(variable)
 	If trim(variable) <> "" THEN
 		EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
