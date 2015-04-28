@@ -10,30 +10,47 @@
 '
 'Here's the code to add (remove comments before using):
 '
-'LOADING ROUTINE FUNCTIONS---------------------------------------------------------------
-'url = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/master/MASTER FUNCTIONS LIBRARY.vbs"
-'SET req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
-'req.open "GET", url, FALSE									'Attempts to open the URL
-'req.send													'Sends request
-'IF req.Status = 200 THEN									'200 means great success
-'	Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
-'	Execute req.responseText								'Executes the script code
-'ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
-'	MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
-'			vbCr & _
-'			"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
-'			vbCr & _
-'			"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
-'			vbTab & "- The name of the script you are running." & vbCr &_
-'			vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
-'			vbTab & "- The name and email for an employee from your IT department," & vbCr & _
-'			vbTab & vbTab & "responsible for network issues." & vbCr &_
-'			vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
-'			vbCr & _
-'			"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
-'			vbCr &_
-'			"URL: " & url
-'			script_end_procedure("Script ended due to error connecting to GitHub.")
+''LOADING FUNCTIONS LIBRARY FROM GITHUB REPOSITORY===========================================================================
+'IF IsEmpty(FuncLib_URL) = TRUE THEN	'Shouldn't load FuncLib if it already loaded once
+'	IF run_locally = FALSE or run_locally = "" THEN		'If the scripts are set to run locally, it skips this and uses an FSO below.
+'		IF default_directory = "C:\DHS-MAXIS-Scripts\Script Files\" THEN			'If the default_directory is C:\DHS-MAXIS-Scripts\Script Files, you're probably a scriptwriter and should use the master branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/master/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		ELSEIF beta_agency = "" or beta_agency = True then							'If you're a beta agency, you should probably use the beta branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/BETA/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		Else																		'Everyone else should use the release branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/RELEASE/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		End if
+'		SET req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a FuncLib_URL
+'		req.open "GET", FuncLib_URL, FALSE							'Attempts to open the FuncLib_URL
+'		req.send													'Sends request
+'		IF req.Status = 200 THEN									'200 means great success
+'			Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
+'			Execute req.responseText								'Executes the script code
+'		ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
+'			MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
+'					vbCr & _
+'					"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
+'					vbCr & _
+'					"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
+'					vbTab & "- The name of the script you are running." & vbCr &_
+'					vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
+'					vbTab & "- The name and email for an employee from your IT department," & vbCr & _
+'					vbTab & vbTab & "responsible for network issues." & vbCr &_
+'					vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
+'					vbCr & _
+'					"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
+'					vbCr &_
+'					"URL: " & FuncLib_URL
+'					script_end_procedure("Script ended due to error connecting to GitHub.")
+'		END IF
+'	ELSE
+'		FuncLib_URL = "C:\BZS-FuncLib\MASTER FUNCTIONS LIBRARY.vbs"
+'		Set run_another_script_fso = CreateObject("Scripting.FileSystemObject")
+'		Set fso_command = run_another_script_fso.OpenTextFile(FuncLib_URL)
+'		text_from_the_other_script = fso_command.ReadAll
+'		fso_command.Close
+'		Execute text_from_the_other_script
+'	END IF
 'END IF
 
 'GLOBAL CONSTANTS----------------------------------------------------------------------------------------------------
@@ -1065,22 +1082,48 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
   Elseif panel_read_from = "INSA" then '----------------------------------------------------------------------------------------------------INSA
     EMReadScreen INSA_amt, 1, 2, 78
     If INSA_amt <> 0 then
-      EMReadScreen INSA_name, 38, 10, 38
-      INSA_name = replace(INSA_name, "_", "")
-      INSA_name = split(INSA_name)
-      For each word in INSA_name
-	    If trim(word) <> "" then
-          first_letter_of_word = ucase(left(word, 1))
-          rest_of_word = LCase(right(word, len(word) -1))
-          If len(word) > 4 then
-            variable_written_to = variable_written_to & first_letter_of_word & rest_of_word & " "
-          Else
-            variable_written_to = variable_written_to & word & " "
-          End if
-		End if
-      Next
-      variable_written_to = trim(variable_written_to) & "; "
-    End if
+      'Runs once per INSA screen
+		For i = 1 to INSA_amt step 1
+			insurance_name = ""
+			'Goes to the correct screen
+			EMWriteScreen "0" & i, 20, 79
+			transmit
+			'Gather Insurance Name
+			EMReadScreen INSA_name, 38, 10, 38
+			INSA_name = replace(INSA_name, "_", "")
+			INSA_name = split(INSA_name)
+			For each word in INSA_name
+				If trim(word) <> "" then
+						first_letter_of_word = ucase(left(word, 1))
+						rest_of_word = LCase(right(word, len(word) -1))
+						If len(word) > 4 then
+							insurance_name = insurance_name & first_letter_of_word & rest_of_word & " "
+						Else
+							insurance_name = insurance_name & word & " "
+						End if
+				End if
+			Next
+			'Create a list of members covered by this insurance
+			y = 15 : x = 30
+			insured_count = 0
+			member_list = ""
+			Do
+				EMReadScreen insured_member, 2, y, x
+				If insured_member <> "__" then 
+					if member_list = "" then member_list = insured_member
+					if member_list <> "" then member_list = member_list & ", " & insured_member
+					x = x + 4
+					If x = 70 then
+						x = 30 : y = 16
+					End If
+				End If
+			loop until insured_member = "__"
+			'Retain "variable_written_to" as is while also adding members covered by the insurance policy
+			'Example - "Members: 01, 03, 07 are covered by Blue Cross Blue Shield; " 
+			variable_written_to = variable_written_to & "Members: " & member_list & " are covered by " & trim(insurance_name) & "; "
+		Next
+		'This will loop and add the above statement for all insurance policies listed
+	End if
   Elseif panel_read_from = "JOBS" then '----------------------------------------------------------------------------------------------------JOBS
 	For each HH_member in HH_member_array  
       EMWriteScreen HH_member, 20, 76
@@ -1701,98 +1744,64 @@ Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
 End function
 
 Function HH_member_custom_dialog(HH_member_array)
-  'THE FOLLOWING DIALOG WILL DYNAMICALLY CHANGE DEPENDING ON THE HH COMP. IT WILL ALLOW A WORKER TO SELECT WHICH HH MEMBERS NEED TO BE INCLUDED IN THE SCRIPT.
-  EMReadScreen HH_member_01, 18, 5, 3                                       'THIS GATHERS THE HH MEMBERS DIRECTLY FROM A MAXIS SCREEN.
-  EMReadScreen HH_member_02, 18, 6, 3
-  EMReadScreen HH_member_03, 18, 7, 3
-  EMReadScreen HH_member_04, 18, 8, 3
-  EMReadScreen HH_member_05, 18, 9, 3
-  EMReadScreen HH_member_06, 18, 10, 3
-  EMReadScreen HH_member_07, 18, 11, 3
-  EMReadScreen HH_member_08, 18, 12, 3
-  EMReadScreen HH_member_09, 18, 13, 3
-  EMReadScreen HH_member_10, 18, 14, 3
-  EMReadScreen HH_member_11, 18, 15, 3
-  EMReadScreen HH_member_12, 18, 16, 3
-  EMReadScreen HH_member_13, 18, 17, 3
-  EMReadScreen HH_member_14, 18, 18, 3
-  EMReadScreen HH_member_15, 18, 19, 3
-  dialog_size_variable = 50                                                 'DEFAULT IS 50, BUT IT CHANGES DEPENDING ON THE AMOUNT OF HH MEMBERS.
-  If HH_member_03 <> "                  " then dialog_size_variable = 65     
-  If HH_member_04 <> "                  " then dialog_size_variable = 80
-  If HH_member_05 <> "                  " then dialog_size_variable = 95
-  If HH_member_06 <> "                  " then dialog_size_variable = 110
-  If HH_member_07 <> "                  " then dialog_size_variable = 125
-  If HH_member_08 <> "                  " then dialog_size_variable = 140
-  If HH_member_09 <> "                  " then dialog_size_variable = 155
-  If HH_member_10 <> "                  " then dialog_size_variable = 170
-  If HH_member_11 <> "                  " then dialog_size_variable = 185
-  If HH_member_12 <> "                  " then dialog_size_variable = 200
-  If HH_member_13 <> "                  " then dialog_size_variable = 215
-  If HH_member_14 <> "                  " then dialog_size_variable = 230
-  If HH_member_15 <> "                  " then dialog_size_variable = 245
-  If HH_member_01 <> "                  " then client_01_check = 1          'ALL CHECKBOXES DEFAULT TO CHECKED, AS USUALLY WE NEED ALL HH MEMBER INFO.
-  If HH_member_02 <> "                  " then client_02_check = 1
-  If HH_member_03 <> "                  " then client_03_check = 1
-  If HH_member_04 <> "                  " then client_04_check = 1
-  If HH_member_05 <> "                  " then client_05_check = 1
-  If HH_member_06 <> "                  " then client_06_check = 1
-  If HH_member_07 <> "                  " then client_07_check = 1
-  If HH_member_08 <> "                  " then client_08_check = 1
-  If HH_member_09 <> "                  " then client_09_check = 1
-  If HH_member_10 <> "                  " then client_10_check = 1
-  If HH_member_11 <> "                  " then client_11_check = 1
-  If HH_member_12 <> "                  " then client_12_check = 1
-  If HH_member_13 <> "                  " then client_13_check = 1
-  If HH_member_14 <> "                  " then client_14_check = 1
-  If HH_member_15 <> "                  " then client_15_check = 1
-  BeginDialog HH_memb_dialog, 0, 0, 191, dialog_size_variable, "HH member dialog"
-    ButtonGroup ButtonPressed
-      OkButton 135, 10, 50, 15
-      CancelButton 135, 30, 50, 15
-    Text 10, 5, 105, 10, "Household members to look at:"
-    If HH_member_01 <> "                  " then CheckBox 10, 20, 120, 10, HH_member_01, client_01_check
-    If HH_member_02 <> "                  " then CheckBox 10, 35, 120, 10, HH_member_02, client_02_check
-    If HH_member_03 <> "                  " then CheckBox 10, 50, 120, 10, HH_member_03, client_03_check
-    If HH_member_04 <> "                  " then CheckBox 10, 65, 120, 10, HH_member_04, client_04_check
-    If HH_member_05 <> "                  " then CheckBox 10, 80, 120, 10, HH_member_05, client_05_check
-    If HH_member_06 <> "                  " then CheckBox 10, 95, 120, 10, HH_member_06, client_06_check
-    If HH_member_07 <> "                  " then CheckBox 10, 110, 120, 10, HH_member_07, client_07_check
-    If HH_member_08 <> "                  " then CheckBox 10, 125, 120, 10, HH_member_08, client_08_check
-    If HH_member_09 <> "                  " then CheckBox 10, 140, 120, 10, HH_member_09, client_09_check
-    If HH_member_10 <> "                  " then CheckBox 10, 155, 120, 10, HH_member_10, client_10_check
-    If HH_member_11 <> "                  " then CheckBox 10, 170, 120, 10, HH_member_11, client_11_check
-    If HH_member_12 <> "                  " then CheckBox 10, 185, 120, 10, HH_member_12, client_12_check
-    If HH_member_13 <> "                  " then CheckBox 10, 200, 120, 10, HH_member_13, client_13_check
-    If HH_member_14 <> "                  " then CheckBox 10, 215, 120, 10, HH_member_14, client_14_check
-    If HH_member_15 <> "                  " then CheckBox 10, 230, 120, 10, HH_member_15, client_15_check
-  EndDialog
-  'NOW IT SHOWS THE DIALOG FROM THE LAST SCREEN
-  Do
-    Dialog HH_memb_dialog
-    If buttonpressed = 0 then stopscript
-    transmit
-    EMReadScreen MAXIS_check, 5, 1, 39
-    IF MAXIS_check <> "MAXIS" and MAXIS_check <> "AXIS " then MsgBox "You do not appear to be in MAXIS. You may have navigated away, or are passworded out. Clear up the issue, and try again."
-  Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS " 
-  'DETERMINING WHICH HH MEMBERS TO LOOK AT
-  If client_01_check = 1 then HH_member_array = HH_member_array & left(HH_member_01, 2) & " "
-  If client_02_check = 1 then HH_member_array = HH_member_array & left(HH_member_02, 2) & " "
-  If client_03_check = 1 then HH_member_array = HH_member_array & left(HH_member_03, 2) & " "
-  If client_04_check = 1 then HH_member_array = HH_member_array & left(HH_member_04, 2) & " "
-  If client_05_check = 1 then HH_member_array = HH_member_array & left(HH_member_05, 2) & " "
-  If client_06_check = 1 then HH_member_array = HH_member_array & left(HH_member_06, 2) & " "
-  If client_07_check = 1 then HH_member_array = HH_member_array & left(HH_member_07, 2) & " "
-  If client_08_check = 1 then HH_member_array = HH_member_array & left(HH_member_08, 2) & " "
-  If client_09_check = 1 then HH_member_array = HH_member_array & left(HH_member_09, 2) & " "
-  If client_10_check = 1 then HH_member_array = HH_member_array & left(HH_member_10, 2) & " "
-  If client_11_check = 1 then HH_member_array = HH_member_array & left(HH_member_11, 2) & " "
-  If client_12_check = 1 then HH_member_array = HH_member_array & left(HH_member_12, 2) & " "
-  If client_13_check = 1 then HH_member_array = HH_member_array & left(HH_member_13, 2) & " "
-  If client_14_check = 1 then HH_member_array = HH_member_array & left(HH_member_14, 2) & " "
-  If client_15_check = 1 then HH_member_array = HH_member_array & left(HH_member_15, 2) & " "
-  HH_member_array = trim(HH_member_array)
-  HH_member_array = split(HH_member_array, " ")
+
+CALL Navigate_to_MAXIS_screen("STAT", "MEMB")   'navigating to stat memb to gather the ref number and name. 
+
+DO								'reads the reference number, last name, first name, and then puts it into a single string then into the array
+	EMReadscreen ref_nbr, 3, 4, 33
+	EMReadscreen last_name, 5, 6, 30
+	EMReadscreen first_name, 7, 6, 63
+	EMReadscreen Mid_intial, 1, 6, 79
+	last_name = replace(last_name, "_", "") & " "
+	first_name = replace(first_name, "_", "") & " "
+	mid_initial = replace(mid_initial, "_", "")
+	client_string = ref_nbr & last_name & first_name & mid_intial
+	client_array = client_array & client_string & "|"
+	transmit
+	Emreadscreen edit_check, 7, 24, 2	
+LOOP until edit_check = "ENTER A"			'the script will continue to transmit through memb until it reaches the last page and finds the ENTER A edit on the bottom row. 
+
+client_array = TRIM(client_array)
+test_array = split(client_array, "|")
+total_clients = Ubound(test_array)			'setting the upper bound for how many spaces to use from the array
+
+DIM all_client_array()
+ReDim all_clients_array(total_clients, 1)
+
+FOR x = 0 to total_clients				'using a dummy array to build in the autofilled check boxes into the array used for the dialog.
+	Interim_array = split(client_array, "|")
+	all_clients_array(x, 0) = Interim_array(x)
+	all_clients_array(x, 1) = 1
+NEXT
+
+BEGINDIALOG HH_memb_dialog, 0, 0, 191, (35 + (total_clients * 15)), "HH Member Dialog"   'Creates the dynamic dialog. The height will change based on the number of clients it finds.
+	Text 10, 5, 105, 10, "Household members to look at:"						
+	FOR i = 0 to total_clients										'For each person/string in the first level of the array the script will create a checkbox for them with height dependant on their order read
+		IF all_clients_array(i, 0) <> "" THEN checkbox 10, (20 + (i * 15)), 120, 10, all_clients_array(i, 0), all_clients_array(i, 1)  'Ignores and blank scanned in persons/strings to avoid a blank checkbox
+	NEXT
+	ButtonGroup ButtonPressed
+	OkButton 135, 10, 50, 15
+	CancelButton 135, 30, 50, 15
+ENDDIALOG
+													'runs the dialog that has been dynamically created. Streamlined with new functions.
+Dialog HH_memb_dialog
+If buttonpressed = 0 then stopscript
+check_for_maxis
+
+HH_member_array = ""					
+
+FOR i = 0 to total_clients
+	IF all_clients_array(i, 0) <> "" THEN 						'creates the final array to be used by other scripts. 
+		IF all_clients_array(i, 1) = 1 THEN						'if the person/string has been checked on the dialog then the reference number portion (left 2) will be added to new HH_member_array
+			'msgbox all_clients_
+			HH_member_array = HH_member_array & left(all_clients_array(i, 0), 2) & " "
+		END IF
+	END IF
+NEXT
+
+HH_member_array = TRIM(HH_member_array)							'Cleaning up array for ease of use.
+HH_member_array = SPLIT(HH_member_array, " ")
+
 End function
 
 function log_usage_stats_without_closing 'For use when logging usage stats but then running another script, i.e. DAIL scrubber
