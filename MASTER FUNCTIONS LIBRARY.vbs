@@ -59,7 +59,7 @@ Dim checked, unchecked, cancel, OK		'Declares this for Option Explicit users
 checked = 1			'Value for checked boxes
 unchecked = 0		'Value for unchecked boxes
 cancel = 0			'Value for cancel button in dialogs
-OK = -1					'Value for OK button in dialogs
+OK = -1			'Value for OK button in dialogs
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
