@@ -1783,7 +1783,7 @@ ENDDIALOG
 													'runs the dialog that has been dynamically created. Streamlined with new functions.
 Dialog HH_memb_dialog
 If buttonpressed = 0 then stopscript
-check_for_maxis
+check_for_maxis(True)
 
 HH_member_array = ""					
 
