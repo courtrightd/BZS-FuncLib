@@ -889,34 +889,97 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "DISA" then '----------------------------------------------------------------------------------------------------DISA
-	For each HH_member in HH_member_array
+    For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen DISA_status, 2, 13, 59
-      If DISA_status = "01" or DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
-      If DISA_status = "06" then DISA_status = "SMRT/SSA pends"
-      If DISA_status = "08" then DISA_status = "Certified blind"
-      If DISA_status = "10" then DISA_status = "Certified disabled"
-      If DISA_status = "11" then DISA_status = "Spec cat- disa child"
-      If DISA_status = "20" then DISA_status = "TEFRA- disabled"
-      If DISA_status = "21" then DISA_status = "TEFRA- blind"
-      If DISA_status = "22" then DISA_status = "MA-EPD"
-      If DISA_status = "23" then DISA_status = "MA/waiver"
-      If DISA_status = "24" then DISA_status = "SSA/SMRT appeal pends"
-      If DISA_status = "26" then DISA_status = "SSA/SMRT disa deny"
-      If DISA_status = "__" then
-        DISA_status = ""
-      Else
-        EMReadScreen DISA_ver, 1, 13, 69
-        If DISA_ver = "?" or DISA_ver = "N" then
-          DISA_proof_type = ", no proof provided"
-        Else
-          DISA_proof_type = ""
-        End if
-        variable_written_to = variable_written_to & "Member " & HH_member & "- "
-        variable_written_to = variable_written_to & DISA_status & DISA_proof_type & "; "
-      End if
+	  EMReadscreen DISA_total, 1, 2, 78
+	  IF DISA_total <> 0 THEN
+		'Reads and formats CASH/GRH disa status
+		EMReadScreen CASH_DISA_status, 2, 11, 59
+		EMReadScreen CASH_DISA_verif, 1, 11, 69
+		IF CASH_DISA_status = "01" or CASH_DISA_status = "02" or CASH_DISA_status = "03" OR CASH_DISA_status = "04" THEN CASH_DISA_status = "RSDI/SSI certified"
+		IF CASH_DISA_status = "06" THEN CASH_DISA_status = "SMRT/SSA pends"
+		IF CASH_DISA_status = "08" THEN CASH_DISA_status = "Certified Blind"
+		IF CASH_DISA_status = "09" THEN CASH_DISA_status = "Ill/Incap"
+		IF CASH_DISA_status = "10" THEN CASH_DISA_status = "Certified disabled"
+		IF CASH_DISA_verif = "?" OR CASH_DISA_verif = "N" THEN
+			CASH_DISA_verif = ", no proof provided"
+		ELSE
+			CASH_DISA_verif = ""
+		END IF
+		
+		'Reads and formats SNAP disa status
+		EmreadScreen SNAP_DISA_status, 2, 12, 59
+		EMReadScreen SNAP_DISA_verif, 1, 12, 69
+		IF SNAP_DISA_status = "01" or SNAP_DISA_status = "02" or SNAP_DISA_status = "03" OR SNAP_DISA_status = "04" THEN SNAP_DISA_status = "RSDI/SSI certified"
+		IF SNAP_DISA_status = "08" THEN SNAP_DISA_status = "Certified Blind"
+		IF SNAP_DISA_status = "09" THEN SNAP_DISA_status = "Ill/Incap"
+		IF SNAP_DISA_status = "10" THEN SNAP_DISA_status = "Certified disabled"
+		IF SNAP_DISA_status = "11" THEN SNAP_DISA_status = "VA determined PD disa"
+		IF SNAP_DISA_status = "12" THEN SNAP_DISA_status = "VA (other accept disa)"
+		IF SNAP_DISA_status = "13" THEN SNAP_DISA_status = "Cert RR Ret Disa & on MEDI"
+		IF SNAP_DISA_status = "14" THEN SNAP_DISA_status = "Other Govt Perm Disa Ret Bnft"
+		IF SNAP_DISA_status = "15" THEN SNAP_DISA_status = "Disability from MINE list"
+		IF SNAP_DISA_status = "16" THEN SNAP_DISA_status = "Unable to p&p own meal"
+		IF SNAP_DISA_verif = "?" OR SNAP_DISA_verif = "N" THEN
+			SNAP_DISA_verif = ", no proof provided"
+		ELSE
+			SNAP_DISA_verif = ""
+		END IF
+		
+		'Reads and formats HC disa status/verif
+		EMReadScreen HC_DISA_status, 2, 13, 59
+		EMReadScreen HC_DISA_verif, 1, 13, 69
+		If HC_DISA_status = "01" or DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
+		If HC_DISA_status = "06" then DISA_status = "SMRT/SSA pends"
+		If HC_DISA_status = "08" then DISA_status = "Certified blind"
+		If HC_DISA_status = "10" then DISA_status = "Certified disabled"
+		If HC_DISA_status = "11" then DISA_status = "Spec cat- disa child"
+		If HC_DISA_status = "20" then DISA_status = "TEFRA- disabled"
+		If HC_DISA_status = "21" then DISA_status = "TEFRA- blind"
+		If HC_DISA_status = "22" then DISA_status = "MA-EPD"
+		If HC_DISA_status = "23" then DISA_status = "MA/waiver"
+		If HC_DISA_status = "24" then DISA_status = "SSA/SMRT appeal pends"
+		If HC_DISA_status = "26" then DISA_status = "SSA/SMRT disa deny"
+		IF HC_DISA_verif = "?" OR HC_DISA_verif = "N" THEN
+			HC_DISA_verif = ", no proof provided"
+		ELSE
+			HC_DISA_verif = ""
+		END IF
+		'cleaning to make variable to write
+		IF CASH_DISA_status = "__" THEN 
+			CASH_DISA_status = ""
+		ELSE
+			IF CASH_DISA_status = SNAP_DISA_status THEN
+				SNAP_DISA_status = "__"
+				CASH_DISA_status = "CASH/SNAP: " & CASH_DISA_status & " "
+			ELSE	
+				CASH_DISA_status = "CASH: " & CASH_DISA_status & " "
+			END IF
+		END IF
+		IF SNAP_DISA_status = "__" THEN 
+			SNAP_DISA_status = ""
+		ELSE
+			SNAP_DISA_status = "SNAP: " & SNAP_DISA_status & " "
+		END IF
+		IF HC_DISA_status = "__" THEN 
+			HC_DISA_status = ""
+		ELSE
+			HC_DISA_status = "HC: " & HC_DISA_status & " "
+		END IF
+		'Adding verif code info if N or ?
+		IF CASH_DISA_verif <> "" THEN CASH_DISA_status = CASH_DISA_status & CASH_DISA_verif & " "
+		IF SNAP_DISA_verif <> "" THEN SNAP_DISA_status = SNAP_DISA_status & SNAP_DISA_verif & " "
+		IF HC_DISA_verif <> "" THEN HC_DISA_status = HC_DISA_status & HC_DISA_verif & " "
+		'Creating final variable
+		IF CASH_DISA_status <> "" THEN FINAL_DISA_status = CASH_DISA_status
+		IF SNAP_DISA_status <> "" THEN FINAL_DISA_status = FINAL_DISA_status & SNAP_DISA_status
+		IF HC_DISA_status <> "" THEN FINAL_DISA_status = FINAL_DISA_status & HC_DISA_status
+		
+		variable_written_to = variable_written_to & "Member " & HH_member & "- "
+		variable_written_to = variable_written_to & FINAL_DISA_status & "; "
+	  END IF
     Next
   Elseif panel_read_from = "EATS" then '----------------------------------------------------------------------------------------------------EATS
     row = 14
