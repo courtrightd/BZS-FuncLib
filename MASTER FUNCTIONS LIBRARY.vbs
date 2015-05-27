@@ -10,39 +10,61 @@
 '
 'Here's the code to add (remove comments before using):
 '
-'LOADING ROUTINE FUNCTIONS---------------------------------------------------------------
-'url = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/master/MASTER FUNCTIONS LIBRARY.vbs"
-'SET req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
-'req.open "GET", url, FALSE									'Attempts to open the URL
-'req.send													'Sends request
-'IF req.Status = 200 THEN									'200 means great success
-'	Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
-'	Execute req.responseText								'Executes the script code
-'ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
-'	MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
-'			vbCr & _
-'			"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
-'			vbCr & _
-'			"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
-'			vbTab & "- The name of the script you are running." & vbCr &_
-'			vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
-'			vbTab & "- The name and email for an employee from your IT department," & vbCr & _
-'			vbTab & vbTab & "responsible for network issues." & vbCr &_
-'			vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
-'			vbCr & _
-'			"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
-'			vbCr &_
-'			"URL: " & url
-'			script_end_procedure("Script ended due to error connecting to GitHub.")
+''LOADING FUNCTIONS LIBRARY FROM GITHUB REPOSITORY===========================================================================
+'IF IsEmpty(FuncLib_URL) = TRUE THEN	'Shouldn't load FuncLib if it already loaded once
+'	IF run_locally = FALSE or run_locally = "" THEN		'If the scripts are set to run locally, it skips this and uses an FSO below.
+'		IF default_directory = "C:\DHS-MAXIS-Scripts\Script Files\" THEN			'If the default_directory is C:\DHS-MAXIS-Scripts\Script Files, you're probably a scriptwriter and should use the master branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/master/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		ELSEIF beta_agency = "" or beta_agency = True then							'If you're a beta agency, you should probably use the beta branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/BETA/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		Else																		'Everyone else should use the release branch.
+'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/RELEASE/MASTER%20FUNCTIONS%20LIBRARY.vbs"
+'		End if
+'		SET req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a FuncLib_URL
+'		req.open "GET", FuncLib_URL, FALSE							'Attempts to open the FuncLib_URL
+'		req.send													'Sends request
+'		IF req.Status = 200 THEN									'200 means great success
+'			Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
+'			Execute req.responseText								'Executes the script code
+'		ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
+'			MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
+'					vbCr & _
+'					"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
+'					vbCr & _
+'					"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
+'					vbTab & "- The name of the script you are running." & vbCr &_
+'					vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
+'					vbTab & "- The name and email for an employee from your IT department," & vbCr & _
+'					vbTab & vbTab & "responsible for network issues." & vbCr &_
+'					vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
+'					vbCr & _
+'					"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
+'					vbCr &_
+'					"URL: " & FuncLib_URL
+'					script_end_procedure("Script ended due to error connecting to GitHub.")
+'		END IF
+'	ELSE
+'		FuncLib_URL = "C:\BZS-FuncLib\MASTER FUNCTIONS LIBRARY.vbs"
+'		Set run_another_script_fso = CreateObject("Scripting.FileSystemObject")
+'		Set fso_command = run_another_script_fso.OpenTextFile(FuncLib_URL)
+'		text_from_the_other_script = fso_command.ReadAll
+'		fso_command.Close
+'		Execute text_from_the_other_script
+'	END IF
 'END IF
 
 'GLOBAL CONSTANTS----------------------------------------------------------------------------------------------------
-Dim checked, unchecked, cancel, OK		'Declares this for Option Explicit users
+Dim checked, unchecked, cancel, OK, blank		'Declares this for Option Explicit users
 
 checked = 1			'Value for checked boxes
 unchecked = 0		'Value for unchecked boxes
 cancel = 0			'Value for cancel button in dialogs
 OK = -1			'Value for OK button in dialogs
+blank = ""
+
+'Time arrays which can be used to fill an editbox with the convert_array_to_droplist_items function
+time_array_15_min = array("7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM", "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM", "9:00 AM", "9:15 AM", "9:30 AM", "9:45 AM", "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM", "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM", "12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM", "1:00 PM", "1:15 PM", "1:30 PM", "1:45 PM", "2:00 PM", "2:15 PM", "2:30 PM", "2:45 PM", "3:00 PM", "3:15 PM", "3:30 PM", "3:45 PM", "4:00 PM", "4:15 PM", "4:30 PM", "4:45 PM", "5:00 PM", "5:15 PM", "5:30 PM", "5:45 PM", "6:00 PM")
+time_array_30_min = array("7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM")
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
@@ -871,34 +893,97 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "DISA" then '----------------------------------------------------------------------------------------------------DISA
-	For each HH_member in HH_member_array
+    For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen DISA_status, 2, 13, 59
-      If DISA_status = "01" or DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
-      If DISA_status = "06" then DISA_status = "SMRT/SSA pends"
-      If DISA_status = "08" then DISA_status = "Certified blind"
-      If DISA_status = "10" then DISA_status = "Certified disabled"
-      If DISA_status = "11" then DISA_status = "Spec cat- disa child"
-      If DISA_status = "20" then DISA_status = "TEFRA- disabled"
-      If DISA_status = "21" then DISA_status = "TEFRA- blind"
-      If DISA_status = "22" then DISA_status = "MA-EPD"
-      If DISA_status = "23" then DISA_status = "MA/waiver"
-      If DISA_status = "24" then DISA_status = "SSA/SMRT appeal pends"
-      If DISA_status = "26" then DISA_status = "SSA/SMRT disa deny"
-      If DISA_status = "__" then
-        DISA_status = ""
-      Else
-        EMReadScreen DISA_ver, 1, 13, 69
-        If DISA_ver = "?" or DISA_ver = "N" then
-          DISA_proof_type = ", no proof provided"
-        Else
-          DISA_proof_type = ""
-        End if
-        variable_written_to = variable_written_to & "Member " & HH_member & "- "
-        variable_written_to = variable_written_to & DISA_status & DISA_proof_type & "; "
-      End if
+	  EMReadscreen DISA_total, 1, 2, 78
+	  IF DISA_total <> 0 THEN
+		'Reads and formats CASH/GRH disa status
+		EMReadScreen CASH_DISA_status, 2, 11, 59
+		EMReadScreen CASH_DISA_verif, 1, 11, 69
+		IF CASH_DISA_status = "01" or CASH_DISA_status = "02" or CASH_DISA_status = "03" OR CASH_DISA_status = "04" THEN CASH_DISA_status = "RSDI/SSI certified"
+		IF CASH_DISA_status = "06" THEN CASH_DISA_status = "SMRT/SSA pends"
+		IF CASH_DISA_status = "08" THEN CASH_DISA_status = "Certified Blind"
+		IF CASH_DISA_status = "09" THEN CASH_DISA_status = "Ill/Incap"
+		IF CASH_DISA_status = "10" THEN CASH_DISA_status = "Certified disabled"
+		IF CASH_DISA_verif = "?" OR CASH_DISA_verif = "N" THEN
+			CASH_DISA_verif = ", no proof provided"
+		ELSE
+			CASH_DISA_verif = ""
+		END IF
+		
+		'Reads and formats SNAP disa status
+		EmreadScreen SNAP_DISA_status, 2, 12, 59
+		EMReadScreen SNAP_DISA_verif, 1, 12, 69
+		IF SNAP_DISA_status = "01" or SNAP_DISA_status = "02" or SNAP_DISA_status = "03" OR SNAP_DISA_status = "04" THEN SNAP_DISA_status = "RSDI/SSI certified"
+		IF SNAP_DISA_status = "08" THEN SNAP_DISA_status = "Certified Blind"
+		IF SNAP_DISA_status = "09" THEN SNAP_DISA_status = "Ill/Incap"
+		IF SNAP_DISA_status = "10" THEN SNAP_DISA_status = "Certified disabled"
+		IF SNAP_DISA_status = "11" THEN SNAP_DISA_status = "VA determined PD disa"
+		IF SNAP_DISA_status = "12" THEN SNAP_DISA_status = "VA (other accept disa)"
+		IF SNAP_DISA_status = "13" THEN SNAP_DISA_status = "Cert RR Ret Disa & on MEDI"
+		IF SNAP_DISA_status = "14" THEN SNAP_DISA_status = "Other Govt Perm Disa Ret Bnft"
+		IF SNAP_DISA_status = "15" THEN SNAP_DISA_status = "Disability from MINE list"
+		IF SNAP_DISA_status = "16" THEN SNAP_DISA_status = "Unable to p&p own meal"
+		IF SNAP_DISA_verif = "?" OR SNAP_DISA_verif = "N" THEN
+			SNAP_DISA_verif = ", no proof provided"
+		ELSE
+			SNAP_DISA_verif = ""
+		END IF
+		
+		'Reads and formats HC disa status/verif
+		EMReadScreen HC_DISA_status, 2, 13, 59
+		EMReadScreen HC_DISA_verif, 1, 13, 69
+		If HC_DISA_status = "01" or DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
+		If HC_DISA_status = "06" then DISA_status = "SMRT/SSA pends"
+		If HC_DISA_status = "08" then DISA_status = "Certified blind"
+		If HC_DISA_status = "10" then DISA_status = "Certified disabled"
+		If HC_DISA_status = "11" then DISA_status = "Spec cat- disa child"
+		If HC_DISA_status = "20" then DISA_status = "TEFRA- disabled"
+		If HC_DISA_status = "21" then DISA_status = "TEFRA- blind"
+		If HC_DISA_status = "22" then DISA_status = "MA-EPD"
+		If HC_DISA_status = "23" then DISA_status = "MA/waiver"
+		If HC_DISA_status = "24" then DISA_status = "SSA/SMRT appeal pends"
+		If HC_DISA_status = "26" then DISA_status = "SSA/SMRT disa deny"
+		IF HC_DISA_verif = "?" OR HC_DISA_verif = "N" THEN
+			HC_DISA_verif = ", no proof provided"
+		ELSE
+			HC_DISA_verif = ""
+		END IF
+		'cleaning to make variable to write
+		IF CASH_DISA_status = "__" THEN 
+			CASH_DISA_status = ""
+		ELSE
+			IF CASH_DISA_status = SNAP_DISA_status THEN
+				SNAP_DISA_status = "__"
+				CASH_DISA_status = "CASH/SNAP: " & CASH_DISA_status & " "
+			ELSE	
+				CASH_DISA_status = "CASH: " & CASH_DISA_status & " "
+			END IF
+		END IF
+		IF SNAP_DISA_status = "__" THEN 
+			SNAP_DISA_status = ""
+		ELSE
+			SNAP_DISA_status = "SNAP: " & SNAP_DISA_status & " "
+		END IF
+		IF HC_DISA_status = "__" THEN 
+			HC_DISA_status = ""
+		ELSE
+			HC_DISA_status = "HC: " & HC_DISA_status & " "
+		END IF
+		'Adding verif code info if N or ?
+		IF CASH_DISA_verif <> "" THEN CASH_DISA_status = CASH_DISA_status & CASH_DISA_verif & " "
+		IF SNAP_DISA_verif <> "" THEN SNAP_DISA_status = SNAP_DISA_status & SNAP_DISA_verif & " "
+		IF HC_DISA_verif <> "" THEN HC_DISA_status = HC_DISA_status & HC_DISA_verif & " "
+		'Creating final variable
+		IF CASH_DISA_status <> "" THEN FINAL_DISA_status = CASH_DISA_status
+		IF SNAP_DISA_status <> "" THEN FINAL_DISA_status = FINAL_DISA_status & SNAP_DISA_status
+		IF HC_DISA_status <> "" THEN FINAL_DISA_status = FINAL_DISA_status & HC_DISA_status
+		
+		variable_written_to = variable_written_to & "Member " & HH_member & "- "
+		variable_written_to = variable_written_to & FINAL_DISA_status & "; "
+	  END IF
     Next
   Elseif panel_read_from = "EATS" then '----------------------------------------------------------------------------------------------------EATS
     row = 14
@@ -1061,22 +1146,48 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
   Elseif panel_read_from = "INSA" then '----------------------------------------------------------------------------------------------------INSA
     EMReadScreen INSA_amt, 1, 2, 78
     If INSA_amt <> 0 then
-      EMReadScreen INSA_name, 38, 10, 38
-      INSA_name = replace(INSA_name, "_", "")
-      INSA_name = split(INSA_name)
-      For each word in INSA_name
-	    If trim(word) <> "" then
-          first_letter_of_word = ucase(left(word, 1))
-          rest_of_word = LCase(right(word, len(word) -1))
-          If len(word) > 4 then
-            variable_written_to = variable_written_to & first_letter_of_word & rest_of_word & " "
-          Else
-            variable_written_to = variable_written_to & word & " "
-          End if
-		End if
-      Next
-      variable_written_to = trim(variable_written_to) & "; "
-    End if
+      'Runs once per INSA screen
+		For i = 1 to INSA_amt step 1
+			insurance_name = ""
+			'Goes to the correct screen
+			EMWriteScreen "0" & i, 20, 79
+			transmit
+			'Gather Insurance Name
+			EMReadScreen INSA_name, 38, 10, 38
+			INSA_name = replace(INSA_name, "_", "")
+			INSA_name = split(INSA_name)
+			For each word in INSA_name
+				If trim(word) <> "" then
+						first_letter_of_word = ucase(left(word, 1))
+						rest_of_word = LCase(right(word, len(word) -1))
+						If len(word) > 4 then
+							insurance_name = insurance_name & first_letter_of_word & rest_of_word & " "
+						Else
+							insurance_name = insurance_name & word & " "
+						End if
+				End if
+			Next
+			'Create a list of members covered by this insurance
+			y = 15 : x = 30
+			insured_count = 0
+			member_list = ""
+			Do
+				EMReadScreen insured_member, 2, y, x
+				If insured_member <> "__" then 
+					if member_list = "" then member_list = insured_member
+					if member_list <> "" then member_list = member_list & ", " & insured_member
+					x = x + 4
+					If x = 70 then
+						x = 30 : y = 16
+					End If
+				End If
+			loop until insured_member = "__"
+			'Retain "variable_written_to" as is while also adding members covered by the insurance policy
+			'Example - "Members: 01, 03, 07 are covered by Blue Cross Blue Shield; " 
+			variable_written_to = variable_written_to & "Members: " & member_list & " are covered by " & trim(insurance_name) & "; "
+		Next
+		'This will loop and add the above statement for all insurance policies listed
+	End if
   Elseif panel_read_from = "JOBS" then '----------------------------------------------------------------------------------------------------JOBS
 	For each HH_member in HH_member_array  
       EMWriteScreen HH_member, 20, 76
@@ -1406,19 +1517,55 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     		  month_count = month_count + 1
   	   LOOP until month_count = 36
   	PF3
+	EmreadScreen read_WREG_status, 2, 8, 50
+	If read_WREG_status = 03 THEN  WREG_status = "WREG = incap"
+	If read_WREG_status = 04 THEN  WREG_status = "WREG = resp for incap HH memb"
+	If read_WREG_status = 05 THEN  WREG_status = "WREG = age 60+"
+	If read_WREG_status = 06 THEN  WREG_status = "WREG = < age 16"
+	If read_WREG_status = 07 THEN  WREG_status = "WREG = age 16-17, live w/prnt/crgvr"
+	If read_WREG_status = 08 THEN  WREG_status = "WREG = resp for child < 6 yrs old"
+	If read_WREG_status = 09 THEN  WREG_status = "WREG = empl 30 hrs/wk or equiv"
+	If read_WREG_status = 10 THEN  WREG_status = "WREG = match grant part"
+	If read_WREG_status = 11 THEN  WREG_status = "WREG = rec/app for unemp ins"
+	If read_WREG_status = 12 THEN  WREG_status = "WREG = in schl, train prog or higher ed"
+	If read_WREG_status = 13 THEN  WREG_status = "WREG = in CD prog"
+	If read_WREG_status = 14 THEN  WREG_status = "WREG = rec MFIP"
+	If read_WREG_status = 20 THEN  WREG_status = "WREG = pend/rec DWP or WB"
+	If read_WREG_status = 22 THEN  WREG_status = "WREG = app for SSI"
+	If read_WREG_status = 15 THEN  WREG_status = "WREG = age 16-17 not live w/ prnt/crgvr"
+	If read_WREG_status = 16 THEN  WREG_status = "WREG = 50-59 yrs old"
+	If read_WREG_status = 21 THEN  WREG_status = "WREG = resp for child < 18"
+	If read_WREG_status = 17 THEN  WREG_status = "WREG = rec RCA or GA"
+	If read_WREG_status = 18 THEN  WREG_status = "WREG = provide home schl"
+	If read_WREG_status = 30 THEN  WREG_status = "WREG = mand FSET part"
+	If read_WREG_status = 02 THEN  WREG_status = "WREG = non-coop w/ FSET"
+	If read_WREG_status = 33 THEN  WREG_status = "WREG = non-coop w/ referral"
+	If read_WREG_status = "__" THEN  WREG_status = "WREG = blank"
+	
 	EmreadScreen read_abawd_status, 2, 13, 50
-	If read_abawd_status = 10 or read_abawd_status = 11 or read_abawd_status = 13 then
-	  abawd_status = "Client is ABAWD and has used " & abawd_counted_months & " months"
-	else
-	  abawd_status = "Client is not ABAWD"
-	end if
-      IF second_abawd_period <> 0 THEN abawd_status = "CL is ABAWD and has used second 3-month period"
-	variable_written_to = variable_written_to & "Member " & HH_member & "- " & abawd_status & ".; "
+	If read_abawd_status = 01 THEN  abawd_status = "ABAWD = work reg exempt."
+      If read_abawd_status = 02 THEN  abawd_status = "ABAWD = < age 18."
+	If read_abawd_status = 03 THEN  abawd_status = "ABAWD = age 50+."
+	If read_abawd_status = 04 THEN  abawd_status = "ABAWD = crgvr of minor child."		
+	If read_abawd_status = 05 THEN  abawd_status = "ABAWD = pregnant."
+	If read_abawd_status = 06 THEN  abawd_status = "ABAWD = emp ave 20 hrs/wk."
+	If read_abawd_status = 07 THEN  abawd_status = "ABAWD = work exp participant."	
+	If read_abawd_status = 08 THEN  abawd_status = "ABAWD = othr E & T service."
+	If read_abawd_status = 09 THEN  abawd_status = "ABAWD = reside in waiver area."
+	If read_abawd_status = 10 THEN  abawd_status = "ABAWD = ABAWD & has used " & abawd_counted_months & " mo"
+	If read_abawd_status = 11 THEN  abawd_status = "ABAWD = using 2nd three mo period of elig."
+	If read_abawd_status = 12 THEN  abawd_status = "ABAWD = RCA or GA recip."
+	If read_abawd_status = 13 THEN  abawd_status = "ABAWD = ABAWD extension."
+	If read_abawd_status = "__" THEN  abawd_status = "WREG = blank"
+
+
+	variable_written_to = variable_written_to & "Member " & HH_member & "- " & WREG_status & ", " & abawd_status & "; "
      END IF
     Next
   End if
   variable_written_to = trim(variable_written_to) '-----------------------------------------------------------------------------------------cleaning up editbox
   if right(variable_written_to, 1) = ";" then variable_written_to = left(variable_written_to, len(variable_written_to) - 1)
+
 
 End function
 
@@ -1535,6 +1682,17 @@ Function create_MAXIS_friendly_date(date_variable, variable_length, screen_row, 
 	EMWriteScreen right(var_year, 2), screen_row, screen_col + 6
 End function
 
+FUNCTION create_MAXIS_friendly_date_three_spaces_between(date_variable, variable_length, screen_row, screen_col) 
+	var_month = datepart("m", dateadd("d", variable_length, date_variable))		'determines the date based on the variable length: month 
+	If len(var_month) = 1 then var_month = "0" & var_month				'adds a '0' in front of a single digit month
+	EMWriteScreen var_month, screen_row, screen_col					'writes in var_month at coordinates set in FUNCTION line
+	var_day = datepart("d", dateadd("d", variable_length, date_variable)) 		'determines the date based on the variable length: day
+	If len(var_day) = 1 then var_day = "0" & var_day 				'adds a '0' in front of a single digit day
+	EMWriteScreen var_day, screen_row, screen_col + 5 				'writes in var_day at coordinates set in FUNCTION line, and starts 5 columns into date field in MAXIS
+	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable)) 	'determines the date based on the variable length: year
+	EMWriteScreen right(var_year, 2), screen_row, screen_col + 10 			'writes in var_year at coordinates set in FUNCTION line , and starts 5 columns into date field in MAXIS
+END FUNCTION
+
 'Creates a MM DD YYYY date entry at screen_row and screen_col. The variable_length variable is the amount of days to offset the date entered. I.e., 10 for 10 days, -10 for 10 days in the past, etc.
 FUNCTION create_MAXIS_friendly_date_with_YYYY(date_variable, variable_length, screen_row, screen_col) 
 	var_month = datepart("m", dateadd("d", variable_length, date_variable))
@@ -1545,6 +1703,17 @@ FUNCTION create_MAXIS_friendly_date_with_YYYY(date_variable, variable_length, sc
 	EMWriteScreen var_day, screen_row, screen_col + 3
 	var_year = datepart("yyyy", dateadd("d", variable_length, date_variable))
 	EMWriteScreen var_year, screen_row, screen_col + 6
+END FUNCTION
+
+FUNCTION create_MAXIS_friendly_phone_number(phone_number_variable, screen_row, screen_col)
+	WITH (new RegExp)                                                            	'Uses RegExp to bring in special string functions to remove the unneeded strings
+                .Global = True                                                   	'I don't know what this means but David made it work so we're going with it
+                .Pattern = "\D"                                                	 	'Again, no clue. Just do it.
+                phone_number_variable = .Replace(phone_number_variable, "")    	 	'This replaces the non-digits of the phone number with nothing. That leaves us with a bunch of numbers
+	END WITH
+	EMWriteScreen left(phone_number_variable, 3), screen_row, screen_col 		'writes in left 3 digits of the phone number in variable
+	EMWriteScreen mid(phone_number_variable, 4, 3), screen_row, screen_col + 6	'writes in middle 3 digits of the phone number in variable
+	EMWriteScreen right(phone_number_variable, 4), screen_row, screen_col + 12	'writes in right 4 digits of the phone number in variable
 END FUNCTION
 
 Function create_panel_if_nonexistent()
@@ -1639,98 +1808,64 @@ Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
 End function
 
 Function HH_member_custom_dialog(HH_member_array)
-  'THE FOLLOWING DIALOG WILL DYNAMICALLY CHANGE DEPENDING ON THE HH COMP. IT WILL ALLOW A WORKER TO SELECT WHICH HH MEMBERS NEED TO BE INCLUDED IN THE SCRIPT.
-  EMReadScreen HH_member_01, 18, 5, 3                                       'THIS GATHERS THE HH MEMBERS DIRECTLY FROM A MAXIS SCREEN.
-  EMReadScreen HH_member_02, 18, 6, 3
-  EMReadScreen HH_member_03, 18, 7, 3
-  EMReadScreen HH_member_04, 18, 8, 3
-  EMReadScreen HH_member_05, 18, 9, 3
-  EMReadScreen HH_member_06, 18, 10, 3
-  EMReadScreen HH_member_07, 18, 11, 3
-  EMReadScreen HH_member_08, 18, 12, 3
-  EMReadScreen HH_member_09, 18, 13, 3
-  EMReadScreen HH_member_10, 18, 14, 3
-  EMReadScreen HH_member_11, 18, 15, 3
-  EMReadScreen HH_member_12, 18, 16, 3
-  EMReadScreen HH_member_13, 18, 17, 3
-  EMReadScreen HH_member_14, 18, 18, 3
-  EMReadScreen HH_member_15, 18, 19, 3
-  dialog_size_variable = 50                                                 'DEFAULT IS 50, BUT IT CHANGES DEPENDING ON THE AMOUNT OF HH MEMBERS.
-  If HH_member_03 <> "                  " then dialog_size_variable = 65     
-  If HH_member_04 <> "                  " then dialog_size_variable = 80
-  If HH_member_05 <> "                  " then dialog_size_variable = 95
-  If HH_member_06 <> "                  " then dialog_size_variable = 110
-  If HH_member_07 <> "                  " then dialog_size_variable = 125
-  If HH_member_08 <> "                  " then dialog_size_variable = 140
-  If HH_member_09 <> "                  " then dialog_size_variable = 155
-  If HH_member_10 <> "                  " then dialog_size_variable = 170
-  If HH_member_11 <> "                  " then dialog_size_variable = 185
-  If HH_member_12 <> "                  " then dialog_size_variable = 200
-  If HH_member_13 <> "                  " then dialog_size_variable = 215
-  If HH_member_14 <> "                  " then dialog_size_variable = 230
-  If HH_member_15 <> "                  " then dialog_size_variable = 245
-  If HH_member_01 <> "                  " then client_01_check = 1          'ALL CHECKBOXES DEFAULT TO CHECKED, AS USUALLY WE NEED ALL HH MEMBER INFO.
-  If HH_member_02 <> "                  " then client_02_check = 1
-  If HH_member_03 <> "                  " then client_03_check = 1
-  If HH_member_04 <> "                  " then client_04_check = 1
-  If HH_member_05 <> "                  " then client_05_check = 1
-  If HH_member_06 <> "                  " then client_06_check = 1
-  If HH_member_07 <> "                  " then client_07_check = 1
-  If HH_member_08 <> "                  " then client_08_check = 1
-  If HH_member_09 <> "                  " then client_09_check = 1
-  If HH_member_10 <> "                  " then client_10_check = 1
-  If HH_member_11 <> "                  " then client_11_check = 1
-  If HH_member_12 <> "                  " then client_12_check = 1
-  If HH_member_13 <> "                  " then client_13_check = 1
-  If HH_member_14 <> "                  " then client_14_check = 1
-  If HH_member_15 <> "                  " then client_15_check = 1
-  BeginDialog HH_memb_dialog, 0, 0, 191, dialog_size_variable, "HH member dialog"
-    ButtonGroup ButtonPressed
-      OkButton 135, 10, 50, 15
-      CancelButton 135, 30, 50, 15
-    Text 10, 5, 105, 10, "Household members to look at:"
-    If HH_member_01 <> "                  " then CheckBox 10, 20, 120, 10, HH_member_01, client_01_check
-    If HH_member_02 <> "                  " then CheckBox 10, 35, 120, 10, HH_member_02, client_02_check
-    If HH_member_03 <> "                  " then CheckBox 10, 50, 120, 10, HH_member_03, client_03_check
-    If HH_member_04 <> "                  " then CheckBox 10, 65, 120, 10, HH_member_04, client_04_check
-    If HH_member_05 <> "                  " then CheckBox 10, 80, 120, 10, HH_member_05, client_05_check
-    If HH_member_06 <> "                  " then CheckBox 10, 95, 120, 10, HH_member_06, client_06_check
-    If HH_member_07 <> "                  " then CheckBox 10, 110, 120, 10, HH_member_07, client_07_check
-    If HH_member_08 <> "                  " then CheckBox 10, 125, 120, 10, HH_member_08, client_08_check
-    If HH_member_09 <> "                  " then CheckBox 10, 140, 120, 10, HH_member_09, client_09_check
-    If HH_member_10 <> "                  " then CheckBox 10, 155, 120, 10, HH_member_10, client_10_check
-    If HH_member_11 <> "                  " then CheckBox 10, 170, 120, 10, HH_member_11, client_11_check
-    If HH_member_12 <> "                  " then CheckBox 10, 185, 120, 10, HH_member_12, client_12_check
-    If HH_member_13 <> "                  " then CheckBox 10, 200, 120, 10, HH_member_13, client_13_check
-    If HH_member_14 <> "                  " then CheckBox 10, 215, 120, 10, HH_member_14, client_14_check
-    If HH_member_15 <> "                  " then CheckBox 10, 230, 120, 10, HH_member_15, client_15_check
-  EndDialog
-  'NOW IT SHOWS THE DIALOG FROM THE LAST SCREEN
-  Do
-    Dialog HH_memb_dialog
-    If buttonpressed = 0 then stopscript
-    transmit
-    EMReadScreen MAXIS_check, 5, 1, 39
-    IF MAXIS_check <> "MAXIS" and MAXIS_check <> "AXIS " then MsgBox "You do not appear to be in MAXIS. You may have navigated away, or are passworded out. Clear up the issue, and try again."
-  Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS " 
-  'DETERMINING WHICH HH MEMBERS TO LOOK AT
-  If client_01_check = 1 then HH_member_array = HH_member_array & left(HH_member_01, 2) & " "
-  If client_02_check = 1 then HH_member_array = HH_member_array & left(HH_member_02, 2) & " "
-  If client_03_check = 1 then HH_member_array = HH_member_array & left(HH_member_03, 2) & " "
-  If client_04_check = 1 then HH_member_array = HH_member_array & left(HH_member_04, 2) & " "
-  If client_05_check = 1 then HH_member_array = HH_member_array & left(HH_member_05, 2) & " "
-  If client_06_check = 1 then HH_member_array = HH_member_array & left(HH_member_06, 2) & " "
-  If client_07_check = 1 then HH_member_array = HH_member_array & left(HH_member_07, 2) & " "
-  If client_08_check = 1 then HH_member_array = HH_member_array & left(HH_member_08, 2) & " "
-  If client_09_check = 1 then HH_member_array = HH_member_array & left(HH_member_09, 2) & " "
-  If client_10_check = 1 then HH_member_array = HH_member_array & left(HH_member_10, 2) & " "
-  If client_11_check = 1 then HH_member_array = HH_member_array & left(HH_member_11, 2) & " "
-  If client_12_check = 1 then HH_member_array = HH_member_array & left(HH_member_12, 2) & " "
-  If client_13_check = 1 then HH_member_array = HH_member_array & left(HH_member_13, 2) & " "
-  If client_14_check = 1 then HH_member_array = HH_member_array & left(HH_member_14, 2) & " "
-  If client_15_check = 1 then HH_member_array = HH_member_array & left(HH_member_15, 2) & " "
-  HH_member_array = trim(HH_member_array)
-  HH_member_array = split(HH_member_array, " ")
+
+CALL Navigate_to_MAXIS_screen("STAT", "MEMB")   'navigating to stat memb to gather the ref number and name. 
+
+DO								'reads the reference number, last name, first name, and then puts it into a single string then into the array
+	EMReadscreen ref_nbr, 3, 4, 33
+	EMReadscreen last_name, 5, 6, 30
+	EMReadscreen first_name, 7, 6, 63
+	EMReadscreen Mid_intial, 1, 6, 79
+	last_name = replace(last_name, "_", "") & " "
+	first_name = replace(first_name, "_", "") & " "
+	mid_initial = replace(mid_initial, "_", "")
+	client_string = ref_nbr & last_name & first_name & mid_intial
+	client_array = client_array & client_string & "|"
+	transmit
+	Emreadscreen edit_check, 7, 24, 2	
+LOOP until edit_check = "ENTER A"			'the script will continue to transmit through memb until it reaches the last page and finds the ENTER A edit on the bottom row. 
+
+client_array = TRIM(client_array)
+test_array = split(client_array, "|")
+total_clients = Ubound(test_array)			'setting the upper bound for how many spaces to use from the array
+
+DIM all_client_array()
+ReDim all_clients_array(total_clients, 1)
+
+FOR x = 0 to total_clients				'using a dummy array to build in the autofilled check boxes into the array used for the dialog.
+	Interim_array = split(client_array, "|")
+	all_clients_array(x, 0) = Interim_array(x)
+	all_clients_array(x, 1) = 1
+NEXT
+
+BEGINDIALOG HH_memb_dialog, 0, 0, 191, (35 + (total_clients * 15)), "HH Member Dialog"   'Creates the dynamic dialog. The height will change based on the number of clients it finds.
+	Text 10, 5, 105, 10, "Household members to look at:"						
+	FOR i = 0 to total_clients										'For each person/string in the first level of the array the script will create a checkbox for them with height dependant on their order read
+		IF all_clients_array(i, 0) <> "" THEN checkbox 10, (20 + (i * 15)), 120, 10, all_clients_array(i, 0), all_clients_array(i, 1)  'Ignores and blank scanned in persons/strings to avoid a blank checkbox
+	NEXT
+	ButtonGroup ButtonPressed
+	OkButton 135, 10, 50, 15
+	CancelButton 135, 30, 50, 15
+ENDDIALOG
+													'runs the dialog that has been dynamically created. Streamlined with new functions.
+Dialog HH_memb_dialog
+If buttonpressed = 0 then stopscript
+check_for_maxis(True)
+
+HH_member_array = ""					
+
+FOR i = 0 to total_clients
+	IF all_clients_array(i, 0) <> "" THEN 						'creates the final array to be used by other scripts. 
+		IF all_clients_array(i, 1) = 1 THEN						'if the person/string has been checked on the dialog then the reference number portion (left 2) will be added to new HH_member_array
+			'msgbox all_clients_
+			HH_member_array = HH_member_array & left(all_clients_array(i, 0), 2) & " "
+		END IF
+	END IF
+NEXT
+
+HH_member_array = TRIM(HH_member_array)							'Cleaning up array for ease of use.
+HH_member_array = SPLIT(HH_member_array, " ")
+
 End function
 
 function log_usage_stats_without_closing 'For use when logging usage stats but then running another script, i.e. DAIL scrubber
@@ -2575,6 +2710,11 @@ Function write_three_columns_in_CASE_NOTE(col_01_start_point, col_01_variable, c
     EMWaitReady 0, 0
   End if
 End function
+
+FUNCTION write_value_and_transmit(input_value, MAXIS_row, MAXIS_col)
+	EMWriteScreen input_value, MAXIS_row, MAXIS_col
+	transmit
+END FUNCTION
 
 Function write_variable_in_CASE_NOTE(variable)
 	If trim(variable) <> "" THEN
