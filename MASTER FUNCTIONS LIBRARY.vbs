@@ -2302,6 +2302,26 @@ function PF20
   EMWaitReady 0, 0
 end function
 
+function PF21
+  EMSendKey "<PF21>"
+  EMWaitReady 0, 0
+end function
+
+function PF22
+  EMSendKey "<PF22>"
+  EMWaitReady 0, 0
+end function
+
+function PF23
+  EMSendKey "<PF23>"
+  EMWaitReady 0, 0
+end function
+
+function PF24
+  EMSendKey "<PF24>"
+  EMWaitReady 0, 0
+end function
+
 'Asks the user if they want to proceed. Result_of_msgbox parameter returns TRUE if Yes is pressed, and FALSE if No is pressed.
 FUNCTION proceed_confirmation(result_of_msgbox)
 	If ButtonPressed = -1 then 
@@ -2963,7 +2983,7 @@ Function write_variable_in_TIKL(variable)
 		ELSE
 			DO
 				tikl_line_four = left(whats_left_after_three, (tikl_line_four_len - 1))
-				IF right(tikl_line_four) <> " " THEN tikl_line_four_len = tikl_line_four_len - 1
+				IF right(tikl_line_four, 1) <> " " THEN tikl_line_four_len = tikl_line_four_len - 1
 			LOOP UNTIL right(tikl_line_four, 1) = " "
 			tikl_line_five = right(whats_left_after_three, (tikl_line_four_len - 1))
 		END IF
