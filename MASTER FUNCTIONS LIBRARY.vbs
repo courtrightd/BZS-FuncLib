@@ -2321,28 +2321,44 @@ function run_another_script(script_path)
 end function
 
 FUNCTION run_from_GitHub(url)
-	Set req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
-	req.open "GET", url, False									'Attempts to open the URL
-	req.send													'Sends request
-	If req.Status = 200 Then									'200 means great success
-		Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
-		Execute req.responseText								'Executes the script code
-	ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
-		MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
-				vbCr & _
-				"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
-				vbCr & _
-				"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
-				vbTab & "- The name of the script you are running." & vbCr &_
-				vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
-				vbTab & "- The name and email for an employee from your IT department," & vbCr & _
-				vbTab & vbTab & "responsible for network issues." & vbCr &_
-				vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
-				vbCr & _
-				"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
-				vbCr &_
-				"URL: " & url
-				script_end_procedure("Script ended due to error connecting to GitHub.")
+	'Creates a list of items to remove from anything run from GitHub. This will allow for counties to use Option Explicit handling without fear.
+	list_of_things_to_remove = array("OPTION EXPLICIT", _
+									"option explicit", _
+									"Option Explicit", _
+									"dim case_number", _
+									"DIM case_number", _
+									"Dim case_number")
+	If run_locally = "" or run_locally = False then					'Runs the script from GitHub if we're not set up to run locally.
+		Set req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
+		req.open "GET", url, False									'Attempts to open the URL
+		req.send													'Sends request
+		If req.Status = 200 Then									'200 means great success
+			Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
+			script_contents = req.responseText						'Empties the response into a variable called script_contents
+			'Uses a for/next to remove the list_of_things_to_remove
+			FOR EACH phrase IN list_of_things_to_remove		
+				script_contents = replace(script_contents, phrase, "")
+			NEXT
+			Execute script_contents									'Executes the remaining script code
+		ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
+			MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
+					vbCr & _
+					"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
+					vbCr & _
+					"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
+					vbTab & "- The name of the script you are running." & vbCr &_
+					vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
+					vbTab & "- The name and email for an employee from your IT department," & vbCr & _
+					vbTab & vbTab & "responsible for network issues." & vbCr &_
+					vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
+					vbCr & _
+					"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
+					vbCr &_
+					"URL: " & url
+					script_end_procedure("Script ended due to error connecting to GitHub.")
+		END IF
+	ELSE
+		call run_another_script(url)
 	END IF
 END FUNCTION
 
@@ -2995,6 +3011,8 @@ END FUNCTION
 
 '<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
 If beta_agency = True then 
+	'These counties are NOT part of the beta. Because of that, if they are showing up as part of the beta, it will manually remove them from the beta branch and set them back to release.
+	'	As of 06/03/2015, it will also deliver a MsgBox telling them they need to update. These counties should have fixed this back in January when this was first posted on SIR.
 	If worker_county_code = "x101" or _
 	   worker_county_code = "x103" or _
 	   worker_county_code = "x106" or _
@@ -3054,6 +3072,9 @@ If beta_agency = True then
 	   worker_county_code = "x184" or _
 	   worker_county_code = "x185" or _
 	   worker_county_code = "x187" then 
+		MsgBox "If you are seeing this message, it's because a minor script glitch may have been detected, which requires an alpha user to reinstall the scripts for your county." & vbNewLine & vbNewLine & _
+		  "Instructions for updating your scripts can be found on SIR, in a document titled ""Beta agency bug fix 01.27.2015"". Please ask an alpha user to follow these instructions to correct this issue." & vbNewLine & vbNewLine & _
+		  "If you are still seeing this pop-up after following these instructions, ask an alpha user to email Veronica Cary. Thank you!"
 		script_repository = "https://raw.githubusercontent.com/MN-Script-Team/DHS-MAXIS-Scripts/RELEASE/Script Files/"
 	End if
 End if
