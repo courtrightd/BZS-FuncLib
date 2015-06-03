@@ -3011,6 +3011,8 @@ END FUNCTION
 
 '<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
 If beta_agency = True then 
+	'These counties are NOT part of the beta. Because of that, if they are showing up as part of the beta, it will manually remove them from the beta branch and set them back to release.
+	'	As of 06/03/2015, it will also deliver a MsgBox telling them they need to update. These counties should have fixed this back in January when this was first posted on SIR.
 	If worker_county_code = "x101" or _
 	   worker_county_code = "x103" or _
 	   worker_county_code = "x106" or _
@@ -3070,6 +3072,9 @@ If beta_agency = True then
 	   worker_county_code = "x184" or _
 	   worker_county_code = "x185" or _
 	   worker_county_code = "x187" then 
+		MsgBox "If you are seeing this message, it's because a minor script glitch may have been detected, which requires an alpha user to reinstall the scripts for your county." & vbNewLine & vbNewLine & _
+		  "Instructions for updating your scripts can be found on SIR, in a document titled ""Beta agency bug fix 01.27.2015"". Please ask an alpha user to follow these instructions to correct this issue." & vbNewLine & vbNewLine & _
+		  "If you are still seeing this pop-up after following these instructions, ask an alpha user to email Veronica Cary. Thank you!"
 		script_repository = "https://raw.githubusercontent.com/MN-Script-Team/DHS-MAXIS-Scripts/RELEASE/Script Files/"
 	End if
 End if
