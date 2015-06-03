@@ -2302,6 +2302,26 @@ function PF20
   EMWaitReady 0, 0
 end function
 
+function PF21
+  EMSendKey "<PF21>"
+  EMWaitReady 0, 0
+end function
+
+function PF22
+  EMSendKey "<PF22>"
+  EMWaitReady 0, 0
+end function
+
+function PF23
+  EMSendKey "<PF23>"
+  EMWaitReady 0, 0
+end function
+
+function PF24
+  EMSendKey "<PF24>"
+  EMWaitReady 0, 0
+end function
+
 'Asks the user if they want to proceed. Result_of_msgbox parameter returns TRUE if Yes is pressed, and FALSE if No is pressed.
 FUNCTION proceed_confirmation(result_of_msgbox)
 	If ButtonPressed = -1 then 
