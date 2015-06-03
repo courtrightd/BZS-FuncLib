@@ -2983,7 +2983,7 @@ Function write_variable_in_TIKL(variable)
 		ELSE
 			DO
 				tikl_line_four = left(whats_left_after_three, (tikl_line_four_len - 1))
-				IF right(tikl_line_four) <> " " THEN tikl_line_four_len = tikl_line_four_len - 1
+				IF right(tikl_line_four, 1) <> " " THEN tikl_line_four_len = tikl_line_four_len - 1
 			LOOP UNTIL right(tikl_line_four, 1) = " "
 			tikl_line_five = right(whats_left_after_three, (tikl_line_four_len - 1))
 		END IF
