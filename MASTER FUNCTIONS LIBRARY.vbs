@@ -2321,13 +2321,25 @@ function run_another_script(script_path)
 end function
 
 FUNCTION run_from_GitHub(url)
+	'Creates a list of items to remove from anything run from GitHub. This will allow for counties to use Option Explicit handling without fear.
+	list_of_things_to_remove = array("OPTION EXPLICIT", _
+									"option explicit", _
+									"Option Explicit", _
+									"dim case_number", _
+									"DIM case_number", _
+									"Dim case_number")
 	If run_locally = "" or run_locally = False then					'Runs the script from GitHub if we're not set up to run locally.
 		Set req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
 		req.open "GET", url, False									'Attempts to open the URL
 		req.send													'Sends request
 		If req.Status = 200 Then									'200 means great success
 			Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
-			Execute req.responseText								'Executes the script code
+			script_contents = req.responseText						'Empties the response into a variable called script_contents
+			'Uses a for/next to remove the list_of_things_to_remove
+			FOR EACH phrase IN list_of_things_to_remove		
+				script_contents = replace(script_contents, phrase, "")
+			NEXT
+			Execute script_contents									'Executes the remaining script code
 		ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
 			MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
 					vbCr & _
