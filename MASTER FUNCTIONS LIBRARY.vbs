@@ -3094,7 +3094,7 @@ If beta_agency = True then
 	   worker_county_code = "x187" then 
 		MsgBox "If you are seeing this message, it's because a minor script glitch may have been detected, which requires an alpha user to reinstall the scripts for your county." & vbNewLine & vbNewLine & _
 		  "Instructions for updating your scripts can be found on SIR, in a document titled ""Beta agency bug fix 01.27.2015"". Please ask an alpha user to follow these instructions to correct this issue." & vbNewLine & vbNewLine & _
-		  "If you are still seeing this pop-up after following these instructions, ask an alpha user to email Veronica Cary. Thank you!"
+		  "If you are still seeing this pop-up after following these instructions, ask an alpha user to email Veronica Cary. If this bug is not fixed by 06/29/2015, your scripts may not work anymore. Thank you!"
 		script_repository = "https://raw.githubusercontent.com/MN-Script-Team/DHS-MAXIS-Scripts/RELEASE/Script Files/"
 	End if
 End if
