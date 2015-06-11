@@ -935,17 +935,17 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
 		'Reads and formats HC disa status/verif
 		EMReadScreen HC_DISA_status, 2, 13, 59
 		EMReadScreen HC_DISA_verif, 1, 13, 69
-		If HC_DISA_status = "01" or DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
-		If HC_DISA_status = "06" then DISA_status = "SMRT/SSA pends"
-		If HC_DISA_status = "08" then DISA_status = "Certified blind"
-		If HC_DISA_status = "10" then DISA_status = "Certified disabled"
-		If HC_DISA_status = "11" then DISA_status = "Spec cat- disa child"
-		If HC_DISA_status = "20" then DISA_status = "TEFRA- disabled"
-		If HC_DISA_status = "21" then DISA_status = "TEFRA- blind"
-		If HC_DISA_status = "22" then DISA_status = "MA-EPD"
-		If HC_DISA_status = "23" then DISA_status = "MA/waiver"
-		If HC_DISA_status = "24" then DISA_status = "SSA/SMRT appeal pends"
-		If HC_DISA_status = "26" then DISA_status = "SSA/SMRT disa deny"
+		If HC_DISA_status = "01" or HC_DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
+		If HC_DISA_status = "06" then HC_DISA_status = "SMRT/SSA pends"
+		If HC_DISA_status = "08" then HC_DISA_status = "Certified blind"
+		If HC_DISA_status = "10" then HC_DISA_status = "Certified disabled"
+		If HC_DISA_status = "11" then HC_DISA_status = "Spec cat- disa child"
+		If HC_DISA_status = "20" then HC_DISA_status = "TEFRA- disabled"
+		If HC_DISA_status = "21" then HC_DISA_status = "TEFRA- blind"
+		If HC_DISA_status = "22" then HC_DISA_status = "MA-EPD"
+		If HC_DISA_status = "23" then HC_DISA_status = "MA/waiver"
+		If HC_DISA_status = "24" then HC_DISA_status = "SSA/SMRT appeal pends"
+		If HC_DISA_status = "26" then HC_DISA_status = "SSA/SMRT disa deny"
 		IF HC_DISA_verif = "?" OR HC_DISA_verif = "N" THEN
 			HC_DISA_verif = ", no proof provided"
 		ELSE
