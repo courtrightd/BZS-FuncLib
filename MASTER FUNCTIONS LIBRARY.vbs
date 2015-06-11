@@ -62,6 +62,10 @@ cancel = 0			'Value for cancel button in dialogs
 OK = -1			'Value for OK button in dialogs
 blank = ""
 
+'Time arrays which can be used to fill an editbox with the convert_array_to_droplist_items function
+time_array_15_min = array("7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM", "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM", "9:00 AM", "9:15 AM", "9:30 AM", "9:45 AM", "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM", "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM", "12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM", "1:00 PM", "1:15 PM", "1:30 PM", "1:45 PM", "2:00 PM", "2:15 PM", "2:30 PM", "2:45 PM", "3:00 PM", "3:15 PM", "3:30 PM", "3:45 PM", "4:00 PM", "4:15 PM", "4:30 PM", "4:45 PM", "5:00 PM", "5:15 PM", "5:30 PM", "5:45 PM", "6:00 PM")
+time_array_30_min = array("7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM")
+
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
 Function add_ACCI_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
@@ -889,34 +893,97 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "DISA" then '----------------------------------------------------------------------------------------------------DISA
-	For each HH_member in HH_member_array
+    For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen DISA_status, 2, 13, 59
-      If DISA_status = "01" or DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
-      If DISA_status = "06" then DISA_status = "SMRT/SSA pends"
-      If DISA_status = "08" then DISA_status = "Certified blind"
-      If DISA_status = "10" then DISA_status = "Certified disabled"
-      If DISA_status = "11" then DISA_status = "Spec cat- disa child"
-      If DISA_status = "20" then DISA_status = "TEFRA- disabled"
-      If DISA_status = "21" then DISA_status = "TEFRA- blind"
-      If DISA_status = "22" then DISA_status = "MA-EPD"
-      If DISA_status = "23" then DISA_status = "MA/waiver"
-      If DISA_status = "24" then DISA_status = "SSA/SMRT appeal pends"
-      If DISA_status = "26" then DISA_status = "SSA/SMRT disa deny"
-      If DISA_status = "__" then
-        DISA_status = ""
-      Else
-        EMReadScreen DISA_ver, 1, 13, 69
-        If DISA_ver = "?" or DISA_ver = "N" then
-          DISA_proof_type = ", no proof provided"
-        Else
-          DISA_proof_type = ""
-        End if
-        variable_written_to = variable_written_to & "Member " & HH_member & "- "
-        variable_written_to = variable_written_to & DISA_status & DISA_proof_type & "; "
-      End if
+	  EMReadscreen DISA_total, 1, 2, 78
+	  IF DISA_total <> 0 THEN
+		'Reads and formats CASH/GRH disa status
+		EMReadScreen CASH_DISA_status, 2, 11, 59
+		EMReadScreen CASH_DISA_verif, 1, 11, 69
+		IF CASH_DISA_status = "01" or CASH_DISA_status = "02" or CASH_DISA_status = "03" OR CASH_DISA_status = "04" THEN CASH_DISA_status = "RSDI/SSI certified"
+		IF CASH_DISA_status = "06" THEN CASH_DISA_status = "SMRT/SSA pends"
+		IF CASH_DISA_status = "08" THEN CASH_DISA_status = "Certified Blind"
+		IF CASH_DISA_status = "09" THEN CASH_DISA_status = "Ill/Incap"
+		IF CASH_DISA_status = "10" THEN CASH_DISA_status = "Certified disabled"
+		IF CASH_DISA_verif = "?" OR CASH_DISA_verif = "N" THEN
+			CASH_DISA_verif = ", no proof provided"
+		ELSE
+			CASH_DISA_verif = ""
+		END IF
+		
+		'Reads and formats SNAP disa status
+		EmreadScreen SNAP_DISA_status, 2, 12, 59
+		EMReadScreen SNAP_DISA_verif, 1, 12, 69
+		IF SNAP_DISA_status = "01" or SNAP_DISA_status = "02" or SNAP_DISA_status = "03" OR SNAP_DISA_status = "04" THEN SNAP_DISA_status = "RSDI/SSI certified"
+		IF SNAP_DISA_status = "08" THEN SNAP_DISA_status = "Certified Blind"
+		IF SNAP_DISA_status = "09" THEN SNAP_DISA_status = "Ill/Incap"
+		IF SNAP_DISA_status = "10" THEN SNAP_DISA_status = "Certified disabled"
+		IF SNAP_DISA_status = "11" THEN SNAP_DISA_status = "VA determined PD disa"
+		IF SNAP_DISA_status = "12" THEN SNAP_DISA_status = "VA (other accept disa)"
+		IF SNAP_DISA_status = "13" THEN SNAP_DISA_status = "Cert RR Ret Disa & on MEDI"
+		IF SNAP_DISA_status = "14" THEN SNAP_DISA_status = "Other Govt Perm Disa Ret Bnft"
+		IF SNAP_DISA_status = "15" THEN SNAP_DISA_status = "Disability from MINE list"
+		IF SNAP_DISA_status = "16" THEN SNAP_DISA_status = "Unable to p&p own meal"
+		IF SNAP_DISA_verif = "?" OR SNAP_DISA_verif = "N" THEN
+			SNAP_DISA_verif = ", no proof provided"
+		ELSE
+			SNAP_DISA_verif = ""
+		END IF
+		
+		'Reads and formats HC disa status/verif
+		EMReadScreen HC_DISA_status, 2, 13, 59
+		EMReadScreen HC_DISA_verif, 1, 13, 69
+		If HC_DISA_status = "01" or DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
+		If HC_DISA_status = "06" then DISA_status = "SMRT/SSA pends"
+		If HC_DISA_status = "08" then DISA_status = "Certified blind"
+		If HC_DISA_status = "10" then DISA_status = "Certified disabled"
+		If HC_DISA_status = "11" then DISA_status = "Spec cat- disa child"
+		If HC_DISA_status = "20" then DISA_status = "TEFRA- disabled"
+		If HC_DISA_status = "21" then DISA_status = "TEFRA- blind"
+		If HC_DISA_status = "22" then DISA_status = "MA-EPD"
+		If HC_DISA_status = "23" then DISA_status = "MA/waiver"
+		If HC_DISA_status = "24" then DISA_status = "SSA/SMRT appeal pends"
+		If HC_DISA_status = "26" then DISA_status = "SSA/SMRT disa deny"
+		IF HC_DISA_verif = "?" OR HC_DISA_verif = "N" THEN
+			HC_DISA_verif = ", no proof provided"
+		ELSE
+			HC_DISA_verif = ""
+		END IF
+		'cleaning to make variable to write
+		IF CASH_DISA_status = "__" THEN 
+			CASH_DISA_status = ""
+		ELSE
+			IF CASH_DISA_status = SNAP_DISA_status THEN
+				SNAP_DISA_status = "__"
+				CASH_DISA_status = "CASH/SNAP: " & CASH_DISA_status & " "
+			ELSE	
+				CASH_DISA_status = "CASH: " & CASH_DISA_status & " "
+			END IF
+		END IF
+		IF SNAP_DISA_status = "__" THEN 
+			SNAP_DISA_status = ""
+		ELSE
+			SNAP_DISA_status = "SNAP: " & SNAP_DISA_status & " "
+		END IF
+		IF HC_DISA_status = "__" THEN 
+			HC_DISA_status = ""
+		ELSE
+			HC_DISA_status = "HC: " & HC_DISA_status & " "
+		END IF
+		'Adding verif code info if N or ?
+		IF CASH_DISA_verif <> "" THEN CASH_DISA_status = CASH_DISA_status & CASH_DISA_verif & " "
+		IF SNAP_DISA_verif <> "" THEN SNAP_DISA_status = SNAP_DISA_status & SNAP_DISA_verif & " "
+		IF HC_DISA_verif <> "" THEN HC_DISA_status = HC_DISA_status & HC_DISA_verif & " "
+		'Creating final variable
+		IF CASH_DISA_status <> "" THEN FINAL_DISA_status = CASH_DISA_status
+		IF SNAP_DISA_status <> "" THEN FINAL_DISA_status = FINAL_DISA_status & SNAP_DISA_status
+		IF HC_DISA_status <> "" THEN FINAL_DISA_status = FINAL_DISA_status & HC_DISA_status
+		
+		variable_written_to = variable_written_to & "Member " & HH_member & "- "
+		variable_written_to = variable_written_to & FINAL_DISA_status & "; "
+	  END IF
     Next
   Elseif panel_read_from = "EATS" then '----------------------------------------------------------------------------------------------------EATS
     row = 14
@@ -1783,7 +1850,7 @@ ENDDIALOG
 													'runs the dialog that has been dynamically created. Streamlined with new functions.
 Dialog HH_memb_dialog
 If buttonpressed = 0 then stopscript
-check_for_maxis
+check_for_maxis(True)
 
 HH_member_array = ""					
 
@@ -2235,6 +2302,26 @@ function PF20
   EMWaitReady 0, 0
 end function
 
+function PF21
+  EMSendKey "<PF21>"
+  EMWaitReady 0, 0
+end function
+
+function PF22
+  EMSendKey "<PF22>"
+  EMWaitReady 0, 0
+end function
+
+function PF23
+  EMSendKey "<PF23>"
+  EMWaitReady 0, 0
+end function
+
+function PF24
+  EMSendKey "<PF24>"
+  EMWaitReady 0, 0
+end function
+
 'Asks the user if they want to proceed. Result_of_msgbox parameter returns TRUE if Yes is pressed, and FALSE if No is pressed.
 FUNCTION proceed_confirmation(result_of_msgbox)
 	If ButtonPressed = -1 then 
@@ -2254,28 +2341,44 @@ function run_another_script(script_path)
 end function
 
 FUNCTION run_from_GitHub(url)
-	Set req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
-	req.open "GET", url, False									'Attempts to open the URL
-	req.send													'Sends request
-	If req.Status = 200 Then									'200 means great success
-		Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
-		Execute req.responseText								'Executes the script code
-	ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
-		MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
-				vbCr & _
-				"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
-				vbCr & _
-				"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
-				vbTab & "- The name of the script you are running." & vbCr &_
-				vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
-				vbTab & "- The name and email for an employee from your IT department," & vbCr & _
-				vbTab & vbTab & "responsible for network issues." & vbCr &_
-				vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
-				vbCr & _
-				"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
-				vbCr &_
-				"URL: " & url
-				script_end_procedure("Script ended due to error connecting to GitHub.")
+	'Creates a list of items to remove from anything run from GitHub. This will allow for counties to use Option Explicit handling without fear.
+	list_of_things_to_remove = array("OPTION EXPLICIT", _
+									"option explicit", _
+									"Option Explicit", _
+									"dim case_number", _
+									"DIM case_number", _
+									"Dim case_number")
+	If run_locally = "" or run_locally = False then					'Runs the script from GitHub if we're not set up to run locally.
+		Set req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
+		req.open "GET", url, False									'Attempts to open the URL
+		req.send													'Sends request
+		If req.Status = 200 Then									'200 means great success
+			Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
+			script_contents = req.responseText						'Empties the response into a variable called script_contents
+			'Uses a for/next to remove the list_of_things_to_remove
+			FOR EACH phrase IN list_of_things_to_remove		
+				script_contents = replace(script_contents, phrase, "")
+			NEXT
+			Execute script_contents									'Executes the remaining script code
+		ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
+			MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
+					vbCr & _
+					"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
+					vbCr & _
+					"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
+					vbTab & "- The name of the script you are running." & vbCr &_
+					vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
+					vbTab & "- The name and email for an employee from your IT department," & vbCr & _
+					vbTab & vbTab & "responsible for network issues." & vbCr &_
+					vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
+					vbCr & _
+					"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
+					vbCr &_
+					"URL: " & url
+					script_end_procedure("Script ended due to error connecting to GitHub.")
+		END IF
+	ELSE
+		call run_another_script(url)
 	END IF
 END FUNCTION
 
@@ -2880,7 +2983,7 @@ Function write_variable_in_TIKL(variable)
 		ELSE
 			DO
 				tikl_line_four = left(whats_left_after_three, (tikl_line_four_len - 1))
-				IF right(tikl_line_four) <> " " THEN tikl_line_four_len = tikl_line_four_len - 1
+				IF right(tikl_line_four, 1) <> " " THEN tikl_line_four_len = tikl_line_four_len - 1
 			LOOP UNTIL right(tikl_line_four, 1) = " "
 			tikl_line_five = right(whats_left_after_three, (tikl_line_four_len - 1))
 		END IF
@@ -2928,6 +3031,8 @@ END FUNCTION
 
 '<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
 If beta_agency = True then 
+	'These counties are NOT part of the beta. Because of that, if they are showing up as part of the beta, it will manually remove them from the beta branch and set them back to release.
+	'	As of 06/03/2015, it will also deliver a MsgBox telling them they need to update. These counties should have fixed this back in January when this was first posted on SIR.
 	If worker_county_code = "x101" or _
 	   worker_county_code = "x103" or _
 	   worker_county_code = "x106" or _
@@ -2987,6 +3092,9 @@ If beta_agency = True then
 	   worker_county_code = "x184" or _
 	   worker_county_code = "x185" or _
 	   worker_county_code = "x187" then 
+		MsgBox "If you are seeing this message, it's because a minor script glitch may have been detected, which requires an alpha user to reinstall the scripts for your county." & vbNewLine & vbNewLine & _
+		  "Instructions for updating your scripts can be found on SIR, in a document titled ""Beta agency bug fix 01.27.2015"". Please ask an alpha user to follow these instructions to correct this issue." & vbNewLine & vbNewLine & _
+		  "If you are still seeing this pop-up after following these instructions, ask an alpha user to email Veronica Cary. If this bug is not fixed by 06/29/2015, your scripts may not work anymore. Thank you!"
 		script_repository = "https://raw.githubusercontent.com/MN-Script-Team/DHS-MAXIS-Scripts/RELEASE/Script Files/"
 	End if
 End if
