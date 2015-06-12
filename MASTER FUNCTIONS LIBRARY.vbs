@@ -841,23 +841,30 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      DCEX_row = 11
-      Do
-      EMReadScreen expense_amt, 8, DCEX_row, 63
-      expense_amt = trim(expense_amt)
-      If expense_amt <> "________" then
-        variable_written_to = variable_written_to & "Member " & HH_member & "- "
-        EMReadScreen child_ref_nbr, 2, DCEX_row, 29
-        EMReadScreen expense_ver, 1, DCEX_row, 41
-        If expense_ver = "?" or expense_ver = "N" or expense_ver = "_" then
-          expense_ver = ", no proof provided"
-        Else
-          expense_ver = ""
-        End if
-        variable_written_to = variable_written_to & "Child " & child_ref_nbr & " ($" & expense_amt & "/mo DCEX" & expense_ver & "); "
-      End if
-      DCEX_row = DCEX_row + 1
-      Loop until DCEX_row = 17
+	  EMReadScreen DCEX_total, 1, 2, 78
+      If DCEX_total <> 0 then
+		variable_written_to = variable_written_to & "Member " & HH_member & "- "
+		Do
+			DCEX_row = 11
+			Do
+				EMReadScreen expense_amt, 8, DCEX_row, 63
+				expense_amt = trim(expense_amt)
+				If expense_amt <> "________" then
+					EMReadScreen child_ref_nbr, 2, DCEX_row, 29
+					EMReadScreen expense_ver, 1, DCEX_row, 41
+					If expense_ver = "?" or expense_ver = "N" or expense_ver = "_" then
+						expense_ver = ", no proof provided"
+					Else
+						expense_ver = ""
+					End if
+					variable_written_to = variable_written_to & "Child " & child_ref_nbr & " ($" & expense_amt & "/mo DCEX" & expense_ver & "); "
+				End if
+				DCEX_row = DCEX_row + 1
+			Loop until DCEX_row = 17
+			EMReadScreen DCEX_panel_current, 1, 2, 73
+			If cint(DCEX_panel_current) < cint(DCEX_total) then transmit
+		Loop until cint(DCEX_panel_current) = cint(DCEX_total)
+	  End if
     Next
   Elseif panel_read_from = "DIET" then '----------------------------------------------------------------------------------------------------DIET
 	For each HH_member in HH_member_array
