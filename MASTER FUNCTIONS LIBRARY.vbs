@@ -1010,7 +1010,9 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         row = 14
         Do
           EMReadScreen date_in_check, 4, row, 53
+		  EMReadScreen date_in_month_day, 5, row, 47
           EMReadScreen date_out_check, 4, row, 77
+		  date_in_month_day = replace(date_in_month_day, " ", "/") & "/"
           If (date_in_check <> "____" and date_out_check <> "____") or (date_in_check = "____" and date_out_check = "____") then row = row + 1
           If row > 18 then
             EMReadScreen FACI_page, 1, 2, 73
@@ -1037,7 +1039,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
           client_FACI = ""
         Else
           variable_written_to = variable_written_to & "Member " & HH_member & "- "
-          variable_written_to = variable_written_to & client_FACI & "; "
+          variable_written_to = variable_written_to & client_FACI & " Date in: " & date_in_month_day & date_in_check & "; "
         End if
       End if
     Next
