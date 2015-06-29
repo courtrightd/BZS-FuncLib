@@ -1600,6 +1600,15 @@ Function check_for_MAXIS(end_script)
 	Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS "
 End function
 
+Function check_for_PRISM(end_script)
+	EMReadScreen PRISM_check, 5, 1, 36
+	if end_script = True then
+		If PRISM_check <> "PRISM" then script_end_procedure("You do not appear to be in PRISM. You may be passworded out. Please check your PRISM screen and try again.")
+	else
+		If PRISM_check <> "PRISM" then MsgBox "You do not appear to be in PRISM. You may be passworded out. Please enter your password before pressing OK."
+	end if
+end function
+
 'This function converts an array into a droplist to be used by a dialog
 Function convert_array_to_droplist_items(array_to_convert, output_droplist_box)
 	For each item in array_to_convert
