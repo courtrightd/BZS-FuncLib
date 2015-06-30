@@ -2530,13 +2530,13 @@ Function worker_county_code_determination(worker_county_code_variable, two_digit
 	If left(code_from_installer, 2) = "PT" then 'special handling for Pine Tech
 		worker_county_code_variable = "PWVTS"
 	Else
-		If worker_county_code_variable = "MULTICOUNTY" then 
+		If worker_county_code_variable = "MULTICOUNTY" or worker_county_code_variable = "" then 		'If the user works for many counties (i.e. SWHHS) or isn't assigned (i.e. a scriptwriter) it asks.
 			Do
 				two_digit_county_code_variable = inputbox("Select the county to proxy as. Ex: ''01''")
 				If two_digit_county_code_variable = "" then stopscript
 				If len(two_digit_county_code_variable) <> 2 or isnumeric(two_digit_county_code_variable) = False then MsgBox "Your county proxy code should be two digits and numeric."
 			Loop until len(two_digit_county_code_variable) = 2 and isnumeric(two_digit_county_code_variable) = True 
-			worker_county_code_variable = "X1" & two_digit_county_code_variable
+			worker_county_code_variable = "x1" & two_digit_county_code_variable
 			If two_digit_county_code_variable = "91" then worker_county_code_variable = "PW"	'For DHS folks without proxy
 		End If
 	End if
