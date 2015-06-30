@@ -2460,10 +2460,12 @@ end function
 'Navigates you to a blank case note, presses PF9, and checks to make sure you're in edit mode (keeping you from writing all of the case note on an inquiry screen).
 FUNCTION start_a_blank_CASE_NOTE
 	call navigate_to_screen("case", "note")
-	PF9
-	EMReadScreen case_note_check, 17, 2, 33
-	EMReadScreen mode_check, 1, 20, 09
-	If case_note_check <> "Case Notes (NOTE)" or mode_check <> "A" then script_end_procedure("The script can't open a case note. Are you in inquiry? Check MAXIS and try again. The script will now stop.")
+	DO
+		PF9
+		EMReadScreen case_note_check, 17, 2, 33
+		EMReadScreen mode_check, 1, 20, 09
+		If case_note_check <> "Case Notes (NOTE)" or mode_check <> "A" then msgbox "The script can't open a case note. Are you in inquiry? Check MAXIS and try again."
+	Loop until (mode_check = "A" or mode_check = "E")
 END FUNCTION
 
 function stat_navigation
