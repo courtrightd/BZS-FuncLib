@@ -3105,25 +3105,47 @@ Function write_variable_in_CCOL_NOTE(variable)
 End function
 
 Function write_variable_in_SPEC_MEMO(variable)
-  variable_array = split(variable, " ")					'Each word becomes its own member of the array called variable_array.
-  For each word in variable_array 
-    EMGetCursor row, col 									'Needs the cursor in order to know if it's going to "overflow".
-    If (row = 17 and col + (len(word)) >= 75) then					'If we're on the last possible row, and the current column + length of the current word goes over the last possible column for writing, then...
-      EMSendKey "<PF8>"										'Send an F8!
-      EMWaitReady 0, 0
-    End if
-    EMReadScreen max_check, 12, 24, 2							'Checks to see if we've maxed out our possible screens.
-    If max_check = "END OF INPUT" then exit for						'Quits the for...next if we've maxed out.
-    EMGetCursor row, col 									'Grabs the cursor again.
-    If (row < 17 and col + (len(word)) >= 75) then EMSendKey "<newline>"	'If we're before the last possible row, and the current column + length of the current word goes over the last possible column for writing, then send a newline.
-    EMSendKey word & " "									'Now, after all of the above logic, it can actually send the word, and a space.
-  Next												'It'll do this for every word in the variable_array.
-  EMSendKey "<newline>"										'Once all of the words are sent, it sends a newline.
-  EMGetCursor row, col 										'Grabs the cursor yet again.
-  If row = 3 and col = 15 then								'If we're at the beginning of a page (meaning we "rolled over" on possible characters on this screen, then...
-    EMSendKey "<PF8>"										'Send an F8!
-    EMWaitReady 0, 0
-  End if
+	EMGetCursor memo_row, memo_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
+	memo_col = 15										'The memo col should always be 15 at this point, because it's the beginning. But, this will be dynamically recreated each time.
+	'The following figures out if we need a new page
+	Do
+		EMReadScreen character_test, 1, memo_row, memo_col 	'Reads a single character at the memo row/col. If there's a character there, it needs to go down a row, and look again until there's nothing. It also needs to trigger these events if it's at or above row 18 (which means we're beyond memo range).
+		If character_test <> " " or memo_row >= 18 then 
+			memo_row = memo_row + 1
+			
+			'If we get to row 18 (which can't be written to), it will go to the next page of the memo (PF8).
+			If memo_row >= 18 then
+				PF8
+				memo_row = 3					'Resets this variable to 3
+			End if
+		End if
+	Loop until character_test = " "
+	
+	'Each word becomes its own member of the array called variable_array.
+	variable_array = split(variable, " ")					
+  
+	For each word in variable_array 
+		'If the length of the word would go past col 74 (you can't write to col 74), it will kick it to the next line
+		If len(word) + memo_col > 74 then 
+			memo_row = memo_row + 1
+			memo_col = 15
+		End if
+		
+		'If we get to row 18 (which can't be written to), it will go to the next page of the memo (PF8).
+		If memo_row >= 18 then
+			PF8
+			memo_row = 3					'Resets this variable to 3
+		End if
+	
+		'Writes the word and a space using EMWriteScreen
+		EMWriteScreen word & " ", memo_row, memo_col
+			
+		'Increases memo_col the length of the word + 1 (for the space)
+		memo_col = memo_col + (len(word) + 1)
+	Next 
+	
+	'After the array is processed, set the cursor on the following row, in col 15, so that the user can enter in information here (just like writing by hand). 
+	EMSetCursor memo_row + 1, 15
 End function
 
 Function write_variable_in_TIKL(variable)
