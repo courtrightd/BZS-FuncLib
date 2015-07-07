@@ -54,12 +54,13 @@
 'END IF
 
 'GLOBAL CONSTANTS----------------------------------------------------------------------------------------------------
-Dim checked, unchecked, cancel, OK		'Declares this for Option Explicit users
+Dim checked, unchecked, cancel, OK, blank		'Declares this for Option Explicit users
 
 checked = 1			'Value for checked boxes
 unchecked = 0		'Value for unchecked boxes
 cancel = 0			'Value for cancel button in dialogs
-OK = -1				'Value for OK button in dialogs
+OK = -1			'Value for OK button in dialogs
+blank = ""
 
 'Time arrays which can be used to fill an editbox with the convert_array_to_droplist_items function
 time_array_15_min = array("7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM", "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM", "9:00 AM", "9:15 AM", "9:30 AM", "9:45 AM", "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM", "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM", "12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM", "1:00 PM", "1:15 PM", "1:30 PM", "1:45 PM", "2:00 PM", "2:15 PM", "2:30 PM", "2:45 PM", "3:00 PM", "3:15 PM", "3:30 PM", "3:45 PM", "4:00 PM", "4:15 PM", "4:30 PM", "4:45 PM", "5:00 PM", "5:15 PM", "5:30 PM", "5:45 PM", "6:00 PM")
@@ -840,23 +841,30 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      DCEX_row = 11
-      Do
-      EMReadScreen expense_amt, 8, DCEX_row, 63
-      expense_amt = trim(expense_amt)
-      If expense_amt <> "________" then
-        variable_written_to = variable_written_to & "Member " & HH_member & "- "
-        EMReadScreen child_ref_nbr, 2, DCEX_row, 29
-        EMReadScreen expense_ver, 1, DCEX_row, 41
-        If expense_ver = "?" or expense_ver = "N" or expense_ver = "_" then
-          expense_ver = ", no proof provided"
-        Else
-          expense_ver = ""
-        End if
-        variable_written_to = variable_written_to & "Child " & child_ref_nbr & " ($" & expense_amt & "/mo DCEX" & expense_ver & "); "
-      End if
-      DCEX_row = DCEX_row + 1
-      Loop until DCEX_row = 17
+	  EMReadScreen DCEX_total, 1, 2, 78
+      If DCEX_total <> 0 then
+		variable_written_to = variable_written_to & "Member " & HH_member & "- "
+		Do
+			DCEX_row = 11
+			Do
+				EMReadScreen expense_amt, 8, DCEX_row, 63
+				expense_amt = trim(expense_amt)
+				If expense_amt <> "________" then
+					EMReadScreen child_ref_nbr, 2, DCEX_row, 29
+					EMReadScreen expense_ver, 1, DCEX_row, 41
+					If expense_ver = "?" or expense_ver = "N" or expense_ver = "_" then
+						expense_ver = ", no proof provided"
+					Else
+						expense_ver = ""
+					End if
+					variable_written_to = variable_written_to & "Child " & child_ref_nbr & " ($" & expense_amt & "/mo DCEX" & expense_ver & "); "
+				End if
+				DCEX_row = DCEX_row + 1
+			Loop until DCEX_row = 17
+			EMReadScreen DCEX_panel_current, 1, 2, 73
+			If cint(DCEX_panel_current) < cint(DCEX_total) then transmit
+		Loop until cint(DCEX_panel_current) = cint(DCEX_total)
+	  End if
     Next
   Elseif panel_read_from = "DIET" then '----------------------------------------------------------------------------------------------------DIET
 	For each HH_member in HH_member_array
@@ -892,34 +900,97 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
     Next
   Elseif panel_read_from = "DISA" then '----------------------------------------------------------------------------------------------------DISA
-	For each HH_member in HH_member_array
+    For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen DISA_status, 2, 13, 59
-      If DISA_status = "01" or DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
-      If DISA_status = "06" then DISA_status = "SMRT/SSA pends"
-      If DISA_status = "08" then DISA_status = "Certified blind"
-      If DISA_status = "10" then DISA_status = "Certified disabled"
-      If DISA_status = "11" then DISA_status = "Spec cat- disa child"
-      If DISA_status = "20" then DISA_status = "TEFRA- disabled"
-      If DISA_status = "21" then DISA_status = "TEFRA- blind"
-      If DISA_status = "22" then DISA_status = "MA-EPD"
-      If DISA_status = "23" then DISA_status = "MA/waiver"
-      If DISA_status = "24" then DISA_status = "SSA/SMRT appeal pends"
-      If DISA_status = "26" then DISA_status = "SSA/SMRT disa deny"
-      If DISA_status = "__" then
-        DISA_status = ""
-      Else
-        EMReadScreen DISA_ver, 1, 13, 69
-        If DISA_ver = "?" or DISA_ver = "N" then
-          DISA_proof_type = ", no proof provided"
-        Else
-          DISA_proof_type = ""
-        End if
-        variable_written_to = variable_written_to & "Member " & HH_member & "- "
-        variable_written_to = variable_written_to & DISA_status & DISA_proof_type & "; "
-      End if
+	  EMReadscreen DISA_total, 1, 2, 78
+	  IF DISA_total <> 0 THEN
+		'Reads and formats CASH/GRH disa status
+		EMReadScreen CASH_DISA_status, 2, 11, 59
+		EMReadScreen CASH_DISA_verif, 1, 11, 69
+		IF CASH_DISA_status = "01" or CASH_DISA_status = "02" or CASH_DISA_status = "03" OR CASH_DISA_status = "04" THEN CASH_DISA_status = "RSDI/SSI certified"
+		IF CASH_DISA_status = "06" THEN CASH_DISA_status = "SMRT/SSA pends"
+		IF CASH_DISA_status = "08" THEN CASH_DISA_status = "Certified Blind"
+		IF CASH_DISA_status = "09" THEN CASH_DISA_status = "Ill/Incap"
+		IF CASH_DISA_status = "10" THEN CASH_DISA_status = "Certified disabled"
+		IF CASH_DISA_verif = "?" OR CASH_DISA_verif = "N" THEN
+			CASH_DISA_verif = ", no proof provided"
+		ELSE
+			CASH_DISA_verif = ""
+		END IF
+		
+		'Reads and formats SNAP disa status
+		EmreadScreen SNAP_DISA_status, 2, 12, 59
+		EMReadScreen SNAP_DISA_verif, 1, 12, 69
+		IF SNAP_DISA_status = "01" or SNAP_DISA_status = "02" or SNAP_DISA_status = "03" OR SNAP_DISA_status = "04" THEN SNAP_DISA_status = "RSDI/SSI certified"
+		IF SNAP_DISA_status = "08" THEN SNAP_DISA_status = "Certified Blind"
+		IF SNAP_DISA_status = "09" THEN SNAP_DISA_status = "Ill/Incap"
+		IF SNAP_DISA_status = "10" THEN SNAP_DISA_status = "Certified disabled"
+		IF SNAP_DISA_status = "11" THEN SNAP_DISA_status = "VA determined PD disa"
+		IF SNAP_DISA_status = "12" THEN SNAP_DISA_status = "VA (other accept disa)"
+		IF SNAP_DISA_status = "13" THEN SNAP_DISA_status = "Cert RR Ret Disa & on MEDI"
+		IF SNAP_DISA_status = "14" THEN SNAP_DISA_status = "Other Govt Perm Disa Ret Bnft"
+		IF SNAP_DISA_status = "15" THEN SNAP_DISA_status = "Disability from MINE list"
+		IF SNAP_DISA_status = "16" THEN SNAP_DISA_status = "Unable to p&p own meal"
+		IF SNAP_DISA_verif = "?" OR SNAP_DISA_verif = "N" THEN
+			SNAP_DISA_verif = ", no proof provided"
+		ELSE
+			SNAP_DISA_verif = ""
+		END IF
+		
+		'Reads and formats HC disa status/verif
+		EMReadScreen HC_DISA_status, 2, 13, 59
+		EMReadScreen HC_DISA_verif, 1, 13, 69
+		If HC_DISA_status = "01" or HC_DISA_status = "02" or DISA_status = "03" or DISA_status = "04" then DISA_status = "RSDI/SSI certified"
+		If HC_DISA_status = "06" then HC_DISA_status = "SMRT/SSA pends"
+		If HC_DISA_status = "08" then HC_DISA_status = "Certified blind"
+		If HC_DISA_status = "10" then HC_DISA_status = "Certified disabled"
+		If HC_DISA_status = "11" then HC_DISA_status = "Spec cat- disa child"
+		If HC_DISA_status = "20" then HC_DISA_status = "TEFRA- disabled"
+		If HC_DISA_status = "21" then HC_DISA_status = "TEFRA- blind"
+		If HC_DISA_status = "22" then HC_DISA_status = "MA-EPD"
+		If HC_DISA_status = "23" then HC_DISA_status = "MA/waiver"
+		If HC_DISA_status = "24" then HC_DISA_status = "SSA/SMRT appeal pends"
+		If HC_DISA_status = "26" then HC_DISA_status = "SSA/SMRT disa deny"
+		IF HC_DISA_verif = "?" OR HC_DISA_verif = "N" THEN
+			HC_DISA_verif = ", no proof provided"
+		ELSE
+			HC_DISA_verif = ""
+		END IF
+		'cleaning to make variable to write
+		IF CASH_DISA_status = "__" THEN 
+			CASH_DISA_status = ""
+		ELSE
+			IF CASH_DISA_status = SNAP_DISA_status THEN
+				SNAP_DISA_status = "__"
+				CASH_DISA_status = "CASH/SNAP: " & CASH_DISA_status & " "
+			ELSE	
+				CASH_DISA_status = "CASH: " & CASH_DISA_status & " "
+			END IF
+		END IF
+		IF SNAP_DISA_status = "__" THEN 
+			SNAP_DISA_status = ""
+		ELSE
+			SNAP_DISA_status = "SNAP: " & SNAP_DISA_status & " "
+		END IF
+		IF HC_DISA_status = "__" THEN 
+			HC_DISA_status = ""
+		ELSE
+			HC_DISA_status = "HC: " & HC_DISA_status & " "
+		END IF
+		'Adding verif code info if N or ?
+		IF CASH_DISA_verif <> "" THEN CASH_DISA_status = CASH_DISA_status & CASH_DISA_verif & " "
+		IF SNAP_DISA_verif <> "" THEN SNAP_DISA_status = SNAP_DISA_status & SNAP_DISA_verif & " "
+		IF HC_DISA_verif <> "" THEN HC_DISA_status = HC_DISA_status & HC_DISA_verif & " "
+		'Creating final variable
+		IF CASH_DISA_status <> "" THEN FINAL_DISA_status = CASH_DISA_status
+		IF SNAP_DISA_status <> "" THEN FINAL_DISA_status = FINAL_DISA_status & SNAP_DISA_status
+		IF HC_DISA_status <> "" THEN FINAL_DISA_status = FINAL_DISA_status & HC_DISA_status
+		
+		variable_written_to = variable_written_to & "Member " & HH_member & "- "
+		variable_written_to = variable_written_to & FINAL_DISA_status & "; "
+	  END IF
     Next
   Elseif panel_read_from = "EATS" then '----------------------------------------------------------------------------------------------------EATS
     row = 14
@@ -946,7 +1017,9 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         row = 14
         Do
           EMReadScreen date_in_check, 4, row, 53
+		  EMReadScreen date_in_month_day, 5, row, 47
           EMReadScreen date_out_check, 4, row, 77
+		  date_in_month_day = replace(date_in_month_day, " ", "/") & "/"
           If (date_in_check <> "____" and date_out_check <> "____") or (date_in_check = "____" and date_out_check = "____") then row = row + 1
           If row > 18 then
             EMReadScreen FACI_page, 1, 2, 73
@@ -973,7 +1046,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
           client_FACI = ""
         Else
           variable_written_to = variable_written_to & "Member " & HH_member & "- "
-          variable_written_to = variable_written_to & client_FACI & "; "
+          variable_written_to = variable_written_to & client_FACI & " Date in: " & date_in_month_day & date_in_check & "; "
         End if
       End if
     Next
@@ -1536,6 +1609,15 @@ Function check_for_MAXIS(end_script)
 	Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS "
 End function
 
+Function check_for_PRISM(end_script)
+	EMReadScreen PRISM_check, 5, 1, 36
+	if end_script = True then
+		If PRISM_check <> "PRISM" then script_end_procedure("You do not appear to be in PRISM. You may be passworded out. Please check your PRISM screen and try again.")
+	else
+		If PRISM_check <> "PRISM" then MsgBox "You do not appear to be in PRISM. You may be passworded out. Please enter your password before pressing OK."
+	end if
+end function
+
 'This function converts an array into a droplist to be used by a dialog
 Function convert_array_to_droplist_items(array_to_convert, output_droplist_box)
 	For each item in array_to_convert
@@ -1786,7 +1868,7 @@ ENDDIALOG
 													'runs the dialog that has been dynamically created. Streamlined with new functions.
 Dialog HH_memb_dialog
 If buttonpressed = 0 then stopscript
-check_for_maxis
+check_for_maxis(True)
 
 HH_member_array = ""					
 
@@ -1923,6 +2005,26 @@ FUNCTION MAXIS_dialog_navigation
 	If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
 	If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
 	If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+END FUNCTION
+
+FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the footer month/year
+	'Does this to check to see if we're on SELF screen
+	EMReadScreen SELF_check, 4, 2, 50
+	IF SELF_check = "SELF" THEN
+		EMReadScreen MAXIS_footer_month, 2, 20, 43
+		EMReadScreen MAXIS_footer_year, 2, 20, 46
+	ELSE
+	Call find_variable("Month: ", MAXIS_footer_month, 2)
+		If isnumeric(MAXIS_footer_month) = true then 	'checking to see if a footer month 'number' is present 
+			footer_month = MAXIS_footer_month	
+			call find_variable("Month: " & footer_month & " ", MAXIS_footer_year, 2)
+			If isnumeric(MAXIS_footer_year) = true then footer_year = MAXIS_footer_year 'checking to see if a footer year 'number' is present
+		Else 'If we don’t have one found, we’re going to assign the current month/year.
+			MAXIS_footer_month = DatePart("m", date)   'Datepart delivers the month number to the variable
+			If len(MAXIS_footer_month) = 1 then MAXIS_footer_month = "0" & MAXIS_footer_month   'If it’s a single digit month, add a zero
+			MAXIS_footer_year = right(DatePart("yyyy", date), 2)	'We only need the right two characters of the year for MAXIS
+		End if
+	End if
 END FUNCTION
 
 Function memb_navigation_next
@@ -2238,6 +2340,26 @@ function PF20
   EMWaitReady 0, 0
 end function
 
+function PF21
+  EMSendKey "<PF21>"
+  EMWaitReady 0, 0
+end function
+
+function PF22
+  EMSendKey "<PF22>"
+  EMWaitReady 0, 0
+end function
+
+function PF23
+  EMSendKey "<PF23>"
+  EMWaitReady 0, 0
+end function
+
+function PF24
+  EMSendKey "<PF24>"
+  EMWaitReady 0, 0
+end function
+
 'Asks the user if they want to proceed. Result_of_msgbox parameter returns TRUE if Yes is pressed, and FALSE if No is pressed.
 FUNCTION proceed_confirmation(result_of_msgbox)
 	If ButtonPressed = -1 then 
@@ -2257,28 +2379,44 @@ function run_another_script(script_path)
 end function
 
 FUNCTION run_from_GitHub(url)
-	Set req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
-	req.open "GET", url, False									'Attempts to open the URL
-	req.send													'Sends request
-	If req.Status = 200 Then									'200 means great success
-		Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
-		Execute req.responseText								'Executes the script code
-	ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
-		MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
-				vbCr & _
-				"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
-				vbCr & _
-				"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
-				vbTab & "- The name of the script you are running." & vbCr &_
-				vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
-				vbTab & "- The name and email for an employee from your IT department," & vbCr & _
-				vbTab & vbTab & "responsible for network issues." & vbCr &_
-				vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
-				vbCr & _
-				"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
-				vbCr &_
-				"URL: " & url
-				script_end_procedure("Script ended due to error connecting to GitHub.")
+	'Creates a list of items to remove from anything run from GitHub. This will allow for counties to use Option Explicit handling without fear.
+	list_of_things_to_remove = array("OPTION EXPLICIT", _
+									"option explicit", _
+									"Option Explicit", _
+									"dim case_number", _
+									"DIM case_number", _
+									"Dim case_number")
+	If run_locally = "" or run_locally = False then					'Runs the script from GitHub if we're not set up to run locally.
+		Set req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a URL
+		req.open "GET", url, False									'Attempts to open the URL
+		req.send													'Sends request
+		If req.Status = 200 Then									'200 means great success
+			Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
+			script_contents = req.responseText						'Empties the response into a variable called script_contents
+			'Uses a for/next to remove the list_of_things_to_remove
+			FOR EACH phrase IN list_of_things_to_remove		
+				script_contents = replace(script_contents, phrase, "")
+			NEXT
+			Execute script_contents									'Executes the remaining script code
+		ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
+			MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_ 
+					vbCr & _
+					"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
+					vbCr & _
+					"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
+					vbTab & "- The name of the script you are running." & vbCr &_
+					vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
+					vbTab & "- The name and email for an employee from your IT department," & vbCr & _
+					vbTab & vbTab & "responsible for network issues." & vbCr &_
+					vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
+					vbCr & _
+					"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_ 
+					vbCr &_
+					"URL: " & url
+					script_end_procedure("Script ended due to error connecting to GitHub.")
+		END IF
+	ELSE
+		call run_another_script(url)
 	END IF
 END FUNCTION
 
@@ -2342,10 +2480,12 @@ end function
 'Navigates you to a blank case note, presses PF9, and checks to make sure you're in edit mode (keeping you from writing all of the case note on an inquiry screen).
 FUNCTION start_a_blank_CASE_NOTE
 	call navigate_to_screen("case", "note")
-	PF9
-	EMReadScreen case_note_check, 17, 2, 33
-	EMReadScreen mode_check, 1, 20, 09
-	If case_note_check <> "Case Notes (NOTE)" or mode_check <> "A" then script_end_procedure("The script can't open a case note. Are you in inquiry? Check MAXIS and try again. The script will now stop.")
+	DO
+		PF9
+		EMReadScreen case_note_check, 17, 2, 33
+		EMReadScreen mode_check, 1, 20, 09
+		If case_note_check <> "Case Notes (NOTE)" or mode_check <> "A" then msgbox "The script can't open a case note. Are you in inquiry? Check MAXIS and try again."
+	Loop until (mode_check = "A" or mode_check = "E")
 END FUNCTION
 
 function stat_navigation
@@ -2409,15 +2549,197 @@ end function
 Function worker_county_code_determination(worker_county_code_variable, two_digit_county_code_variable)		'Determines worker_county_code and two_digit_county_code for multi-county agencies and DHS staff
 	If left(code_from_installer, 2) = "PT" then 'special handling for Pine Tech
 		worker_county_code_variable = "PWVTS"
+		county_name = "Pine Tech"
 	Else
-		If worker_county_code_variable = "MULTICOUNTY" then 
+		If worker_county_code_variable = "MULTICOUNTY" or worker_county_code_variable = "" then 		'If the user works for many counties (i.e. SWHHS) or isn't assigned (i.e. a scriptwriter) it asks.
 			Do
 				two_digit_county_code_variable = inputbox("Select the county to proxy as. Ex: ''01''")
 				If two_digit_county_code_variable = "" then stopscript
 				If len(two_digit_county_code_variable) <> 2 or isnumeric(two_digit_county_code_variable) = False then MsgBox "Your county proxy code should be two digits and numeric."
 			Loop until len(two_digit_county_code_variable) = 2 and isnumeric(two_digit_county_code_variable) = True 
-			worker_county_code_variable = "X1" & two_digit_county_code_variable
+			worker_county_code_variable = "x1" & two_digit_county_code_variable
 			If two_digit_county_code_variable = "91" then worker_county_code_variable = "PW"	'For DHS folks without proxy
+			
+			'Determining county name
+			if worker_county_code_variable = "x101" then 
+				county_name = "Aitkin County"
+			elseif worker_county_code_variable = "x102" then 
+				county_name = "Anoka County"
+			elseif worker_county_code_variable = "x103" then 
+				county_name = "Becker County"
+			elseif worker_county_code_variable = "x104" then 
+				county_name = "Beltrami County"
+			elseif worker_county_code_variable = "x105" then 
+				county_name = "Benton County"
+			elseif worker_county_code_variable = "x106" then 
+				county_name = "Big Stone County"
+			elseif worker_county_code_variable = "x107" then 
+				county_name = "Blue Earth County"
+			elseif worker_county_code_variable = "x108" then 
+				county_name = "Brown County"
+			elseif worker_county_code_variable = "x109" then 
+				county_name = "Carlton County"
+			elseif worker_county_code_variable = "x110" then 
+				county_name = "Carver County"
+			elseif worker_county_code_variable = "x111" then 
+				county_name = "Cass County"
+			elseif worker_county_code_variable = "x112" then 
+				county_name = "Chippewa County"
+			elseif worker_county_code_variable = "x113" then 
+				county_name = "Chisago County"
+			elseif worker_county_code_variable = "x114" then 
+				county_name = "Clay County"
+			elseif worker_county_code_variable = "x115" then 
+				county_name = "Clearwater County"
+			elseif worker_county_code_variable = "x116" then 
+				county_name = "Cook County"
+			elseif worker_county_code_variable = "x117" then 
+				county_name = "Cottonwood County"
+			elseif worker_county_code_variable = "x118" then 
+				county_name = "Crow Wing County"
+			elseif worker_county_code_variable = "x119" then 
+				county_name = "Dakota County"
+			elseif worker_county_code_variable = "x120" then 
+				county_name = "Dodge County"
+			elseif worker_county_code_variable = "x121" then 
+				county_name = "Douglas County"
+			elseif worker_county_code_variable = "x122" then 
+				county_name = "Faribault County"
+			elseif worker_county_code_variable = "x123" then 
+				county_name = "Fillmore County"
+			elseif worker_county_code_variable = "x124" then 
+				county_name = "Freeborn County"
+			elseif worker_county_code_variable = "x125" then 
+				county_name = "Goodhue County"
+			elseif worker_county_code_variable = "x126" then 
+				county_name = "Grant County"
+			elseif worker_county_code_variable = "x127" then 
+				county_name = "Hennepin County"
+			elseif worker_county_code_variable = "x128" then 
+				county_name = "Houston County"
+			elseif worker_county_code_variable = "x129" then 
+				county_name = "Hubbard County"
+			elseif worker_county_code_variable = "x130" then 
+				county_name = "Isanti County"
+			elseif worker_county_code_variable = "x131" then 
+				county_name = "Itasca County"
+			elseif worker_county_code_variable = "x132" then 
+				county_name = "Jackson County"
+			elseif worker_county_code_variable = "x133" then 
+				county_name = "Kanabec County"
+			elseif worker_county_code_variable = "x134" then
+				county_name = "Kandiyohi County"
+			elseif worker_county_code_variable = "x135" then 	
+				county_name = "Kittson County"
+			elseif worker_county_code_variable = "x136" then 	
+				county_name = "Koochiching County"
+			elseif worker_county_code_variable = "x137" then 	
+				county_name = "Lac Qui Parle County"
+			elseif worker_county_code_variable = "x138" then 	
+				county_name = "Lake County"
+			elseif worker_county_code_variable = "x139" then 	
+				county_name = "Lake of the Woods County"
+			elseif worker_county_code_variable = "x140" then 	
+				county_name = "LeSueur County"
+			elseif worker_county_code_variable = "x141" then 	
+				county_name = "Lincoln County"
+			elseif worker_county_code_variable = "x142" then 	
+				county_name = "Lyon County"
+			elseif worker_county_code_variable = "x143" then 	
+				county_name = "Mcleod County"
+			elseif worker_county_code_variable = "x144" then 	
+				county_name = "Mahnomen County"
+			elseif worker_county_code_variable = "x145" then 	
+				county_name = "Marshall County"
+			elseif worker_county_code_variable = "x146" then 	
+				county_name = "Martin County"
+			elseif worker_county_code_variable = "x147" then 	
+				county_name = "Meeker County"
+			elseif worker_county_code_variable = "x148" then 	
+				county_name = "Mille Lacs County"
+			elseif worker_county_code_variable = "x149" then 	
+				county_name = "Morrison County"
+			elseif worker_county_code_variable = "x150" then 	
+				county_name = "Mower County"
+			elseif worker_county_code_variable = "x151" then 	
+				county_name = "Murray County"
+			elseif worker_county_code_variable = "x152" then 	
+				county_name = "Nicollet County"
+			elseif worker_county_code_variable = "x153" then 	
+				county_name = "Nobles County"
+			elseif worker_county_code_variable = "x154" then 	
+				county_name = "Norman County"
+			elseif worker_county_code_variable = "x155" then 	
+				county_name = "Olmsted County"
+			elseif worker_county_code_variable = "x156" then 	
+				county_name = "Otter Tail County"
+			elseif worker_county_code_variable = "x157" then 	
+				county_name = "Pennington County"
+			elseif worker_county_code_variable = "x158" then 	
+				county_name = "Pine County"
+			elseif worker_county_code_variable = "x159" then 	
+				county_name = "Pipestone County"
+			elseif worker_county_code_variable = "x160" then 	
+				county_name = "Polk County"
+			elseif worker_county_code_variable = "x161" then 	
+				county_name = "Pope County"
+			elseif worker_county_code_variable = "x162" then 	
+				county_name = "Ramsey County"
+			elseif worker_county_code_variable = "x163" then 	
+				county_name = "Red Lake County"
+			elseif worker_county_code_variable = "x164" then 	
+				county_name = "Redwood County"
+			elseif worker_county_code_variable = "x165" then 	
+				county_name = "Renville County"
+			elseif worker_county_code_variable = "x166" then 	
+				county_name = "Rice County"
+			elseif worker_county_code_variable = "x167" then 	
+				county_name = "Rock County"
+			elseif worker_county_code_variable = "x168" then 	
+				county_name = "Roseau County"
+			elseif worker_county_code_variable = "x169" then 	
+				county_name = "St. Louis County"
+			elseif worker_county_code_variable = "x170" then 	
+				county_name = "Scott County"
+			elseif worker_county_code_variable = "x171" then 	
+				county_name = "Sherburne County"
+			elseif worker_county_code_variable = "x172" then 	
+				county_name = "Sibley County"
+			elseif worker_county_code_variable = "x173" then 	
+				county_name = "Stearns County"
+			elseif worker_county_code_variable = "x174" then 	
+				county_name = "Steele County"
+			elseif worker_county_code_variable = "x175" then 	
+				county_name = "Stevens County"
+			elseif worker_county_code_variable = "x176" then 	
+				county_name = "Swift County"
+			elseif worker_county_code_variable = "x177" then 	
+				county_name = "Todd County"
+			elseif worker_county_code_variable = "x178" then 	
+				county_name = "Traverse County"
+			elseif worker_county_code_variable = "x179" then 	
+				county_name = "Wabasha County"
+			elseif worker_county_code_variable = "x180" then 	
+				county_name = "Wadena County"
+			elseif worker_county_code_variable = "x181" then 	
+				county_name = "Waseca County"
+			elseif worker_county_code_variable = "x182" then 	
+				county_name = "Washington County"
+			elseif worker_county_code_variable = "x183" then 	
+				county_name = "Watonwan County"
+			elseif worker_county_code_variable = "x184" then 	
+				county_name = "Wilkin County"
+			elseif worker_county_code_variable = "x185" then 	
+				county_name = "Winona County"
+			elseif worker_county_code_variable = "x186" then 	
+				county_name = "Wright County"
+			elseif worker_county_code_variable = "x187" then 	
+				county_name = "Yellow Medicine County"
+			elseif worker_county_code_variable = "x188" then 
+				county_name = "Mille Lacs Band"
+			elseif worker_county_code_variable = "x192" then 
+				county_name = "White Earth Nation"
+			end if
 		End If
 	End if
 End function
@@ -2647,6 +2969,11 @@ Function write_three_columns_in_CASE_NOTE(col_01_start_point, col_01_variable, c
   End if
 End function
 
+FUNCTION write_value_and_transmit(input_value, MAXIS_row, MAXIS_col)
+	EMWriteScreen input_value, MAXIS_row, MAXIS_col
+	transmit
+END FUNCTION
+
 Function write_variable_in_CASE_NOTE(variable)
 	If trim(variable) <> "" THEN
 		EMGetCursor noting_row, noting_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
@@ -2798,25 +3125,47 @@ Function write_variable_in_CCOL_NOTE(variable)
 End function
 
 Function write_variable_in_SPEC_MEMO(variable)
-  variable_array = split(variable, " ")					'Each word becomes its own member of the array called variable_array.
-  For each word in variable_array 
-    EMGetCursor row, col 									'Needs the cursor in order to know if it's going to "overflow".
-    If (row = 17 and col + (len(word)) >= 75) then					'If we're on the last possible row, and the current column + length of the current word goes over the last possible column for writing, then...
-      EMSendKey "<PF8>"										'Send an F8!
-      EMWaitReady 0, 0
-    End if
-    EMReadScreen max_check, 12, 24, 2							'Checks to see if we've maxed out our possible screens.
-    If max_check = "END OF INPUT" then exit for						'Quits the for...next if we've maxed out.
-    EMGetCursor row, col 									'Grabs the cursor again.
-    If (row < 17 and col + (len(word)) >= 75) then EMSendKey "<newline>"	'If we're before the last possible row, and the current column + length of the current word goes over the last possible column for writing, then send a newline.
-    EMSendKey word & " "									'Now, after all of the above logic, it can actually send the word, and a space.
-  Next												'It'll do this for every word in the variable_array.
-  EMSendKey "<newline>"										'Once all of the words are sent, it sends a newline.
-  EMGetCursor row, col 										'Grabs the cursor yet again.
-  If row = 3 and col = 15 then								'If we're at the beginning of a page (meaning we "rolled over" on possible characters on this screen, then...
-    EMSendKey "<PF8>"										'Send an F8!
-    EMWaitReady 0, 0
-  End if
+	EMGetCursor memo_row, memo_col						'Needs to get the row and col to start. Doesn't need to get it in the array function because that uses EMWriteScreen.
+	memo_col = 15										'The memo col should always be 15 at this point, because it's the beginning. But, this will be dynamically recreated each time.
+	'The following figures out if we need a new page
+	Do
+		EMReadScreen character_test, 1, memo_row, memo_col 	'Reads a single character at the memo row/col. If there's a character there, it needs to go down a row, and look again until there's nothing. It also needs to trigger these events if it's at or above row 18 (which means we're beyond memo range).
+		If character_test <> " " or memo_row >= 18 then 
+			memo_row = memo_row + 1
+			
+			'If we get to row 18 (which can't be written to), it will go to the next page of the memo (PF8).
+			If memo_row >= 18 then
+				PF8
+				memo_row = 3					'Resets this variable to 3
+			End if
+		End if
+	Loop until character_test = " "
+	
+	'Each word becomes its own member of the array called variable_array.
+	variable_array = split(variable, " ")					
+  
+	For each word in variable_array 
+		'If the length of the word would go past col 74 (you can't write to col 74), it will kick it to the next line
+		If len(word) + memo_col > 74 then 
+			memo_row = memo_row + 1
+			memo_col = 15
+		End if
+		
+		'If we get to row 18 (which can't be written to), it will go to the next page of the memo (PF8).
+		If memo_row >= 18 then
+			PF8
+			memo_row = 3					'Resets this variable to 3
+		End if
+	
+		'Writes the word and a space using EMWriteScreen
+		EMWriteScreen word & " ", memo_row, memo_col
+			
+		'Increases memo_col the length of the word + 1 (for the space)
+		memo_col = memo_col + (len(word) + 1)
+	Next 
+	
+	'After the array is processed, set the cursor on the following row, in col 15, so that the user can enter in information here (just like writing by hand). 
+	EMSetCursor memo_row + 1, 15
 End function
 
 Function write_variable_in_TIKL(variable)
@@ -2878,7 +3227,7 @@ Function write_variable_in_TIKL(variable)
 		ELSE
 			DO
 				tikl_line_four = left(whats_left_after_three, (tikl_line_four_len - 1))
-				IF right(tikl_line_four) <> " " THEN tikl_line_four_len = tikl_line_four_len - 1
+				IF right(tikl_line_four, 1) <> " " THEN tikl_line_four_len = tikl_line_four_len - 1
 			LOOP UNTIL right(tikl_line_four, 1) = " "
 			tikl_line_five = right(whats_left_after_three, (tikl_line_four_len - 1))
 		END IF
@@ -2926,6 +3275,8 @@ END FUNCTION
 
 '<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
 If beta_agency = True then 
+	'These counties are NOT part of the beta. Because of that, if they are showing up as part of the beta, it will manually remove them from the beta branch and set them back to release.
+	'	As of 06/03/2015, it will also deliver a MsgBox telling them they need to update. These counties should have fixed this back in January when this was first posted on SIR.
 	If worker_county_code = "x101" or _
 	   worker_county_code = "x103" or _
 	   worker_county_code = "x106" or _
@@ -2985,6 +3336,9 @@ If beta_agency = True then
 	   worker_county_code = "x184" or _
 	   worker_county_code = "x185" or _
 	   worker_county_code = "x187" then 
-		script_repository = "https://raw.githubusercontent.com/MN-Script-Team/DHS-MAXIS-Scripts/RELEASE/Script Files/"
+		MsgBox "If you are seeing this message, it's because a script glitch has been detected, which requires an alpha user to reinstall the scripts for your county." & vbNewLine & vbNewLine & _
+		  "Instructions for updating your scripts can be found on SIR, in a document titled ""Beta agency bug fix 01.27.2015"". Please ask an alpha user to follow these instructions to correct this issue." & vbNewLine & vbNewLine & _
+		  "This script will now stop."
+		stopscript
 	End if
 End if
