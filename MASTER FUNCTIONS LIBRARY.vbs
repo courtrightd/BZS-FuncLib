@@ -2460,8 +2460,8 @@ FUNCTION run_from_GitHub(url)
 END FUNCTION
 
 function script_end_procedure(closing_message)
-	If closing_message <> "" then MsgBox closing_message
 	stop_time = timer
+	If closing_message <> "" then MsgBox closing_message
 	script_run_time = stop_time - start_time
 	If is_county_collecting_stats  = True then
 		'Getting user name
