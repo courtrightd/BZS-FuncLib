@@ -68,7 +68,7 @@ time_array_30_min = array("7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM", "9:00 AM",
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
-Function add_ACCI_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_ACCI_to_variable(ACCI_variable)
   EMReadScreen ACCI_date, 8, 6, 73
   ACCI_date = replace(ACCI_date, " ", "/")
   If datediff("yyyy", ACCI_date, now) < 5 then
@@ -86,11 +86,11 @@ Function add_ACCI_to_variable(x) 'x represents the name of the variable (example
     If ACCI_type = "11" then ACCI_type = "MTC or Other Bus Tort"
     If ACCI_type = "12" then ACCI_type = "Pedestrian"
     If ACCI_type = "13" then ACCI_type = "Other"
-    x = x & ACCI_type & " on " & ACCI_date & ".; "
+    ACCI_variable = ACCI_variable & ACCI_type & " on " & ACCI_date & ".; "
   End if
 End function
 
-Function add_ACCT_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_ACCT_to_variable(ACCT_variable)
   EMReadScreen ACCT_amt, 8, 10, 46
   ACCT_amt = trim(ACCT_amt)
   ACCT_amt = "$" & ACCT_amt
@@ -98,14 +98,14 @@ Function add_ACCT_to_variable(x) 'x represents the name of the variable (example
   EMReadScreen ACCT_location, 20, 8, 44
   ACCT_location = replace(ACCT_location, "_", "")
   ACCT_location = split(ACCT_location)
-  For each a in ACCT_location
-    If a <> "" then
-      b = ucase(left(a, 1))
-      c = LCase(right(a, len(a) -1))
-      If len(a) > 3 then
-        new_ACCT_location = new_ACCT_location & b & c & " "
+  For each ACCT_part in ACCT_location
+    If ACCT_part <> "" then
+      first_letter = ucase(left(ACCT_part, 1))
+      other_letters = LCase(right(ACCT_part, len(ACCT_part) -1))
+      If len(ACCT_part) > 3 then
+        new_ACCT_location = new_ACCT_location & first_letter & other_letters & " "
       Else
-        new_ACCT_location = new_ACCT_location & a & " "
+        new_ACCT_location = new_ACCT_location & ACCT_part & " "
       End if
     End if
   Next
@@ -115,11 +115,11 @@ Function add_ACCT_to_variable(x) 'x represents the name of the variable (example
   Else
     ACCT_ver = ""
   End if
-  x = x & ACCT_type & " at " & new_ACCT_location & "(" & ACCT_amt & ")" & ACCT_ver & ".; "
+  ACCT_variable = ACCT_variable & ACCT_type & " at " & new_ACCT_location & "(" & ACCT_amt & ")" & ACCT_ver & ".; "
   new_ACCT_location = ""
 End function
 
-Function add_BUSI_to_variable(variable_name_for_BUSI) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_BUSI_to_variable(variable_name_for_BUSI)
 	'Reading the footer month, converting to an actual date, we'll need this for determining if the panel is 02/15 or later (there was a change in 02/15 which moved stuff)
 	EMReadScreen BUSI_footer_month, 5, 20, 55
 	BUSI_footer_month = replace(BUSI_footer_month, " ", "/01/")
@@ -310,7 +310,7 @@ Function add_BUSI_to_variable(variable_name_for_BUSI) 'x represents the name of 
 	End if
 End function
 
-Function add_CARS_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_CARS_to_variable(CARS_variable)
   EMReadScreen CARS_year, 4, 8, 31
   EMReadScreen CARS_make, 15, 8, 43
   CARS_make = replace(CARS_make, "_", "")
@@ -318,32 +318,32 @@ Function add_CARS_to_variable(x) 'x represents the name of the variable (example
   CARS_model = replace(CARS_model, "_", "")
   CARS_type = CARS_year & " " & CARS_make & " " & CARS_model
   CARS_type = split(CARS_type)
-  For each a in CARS_type
-    If len(a) > 1 then
-      b = ucase(left(a, 1))
-      c = LCase(right(a, len(a) -1))
-      new_CARS_type = new_CARS_type & b & c & " "
+  For each CARS_part in CARS_type
+    If len(CARS_part) > 1 then
+      first_letter = ucase(left(CARS_part, 1))
+      other_letters = LCase(right(CARS_part, len(CARS_part) -1))
+      new_CARS_type = new_CARS_type & first_letter & other_letters & " "
     End if
   Next
   EMReadScreen CARS_amt, 8, 9, 45
   CARS_amt = trim(CARS_amt)
   CARS_amt = "$" & CARS_amt
-  x = x & trim(new_CARS_type) & ", (" & CARS_amt & "); "
+  CARS_variable = CARS_variable & trim(new_CARS_type) & ", (" & CARS_amt & "); "
   new_CARS_type = ""
 End function
 
-Function add_JOBS_to_variable(variable_name_for_JOBS) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_JOBS_to_variable(variable_name_for_JOBS)
   EMReadScreen JOBS_month, 5, 20, 55
   JOBS_month = replace(JOBS_month, " ", "/")
   EMReadScreen JOBS_type, 30, 7, 42
   JOBS_type = replace(JOBS_type, "_", ""	)
   JOBS_type = trim(JOBS_type)
   JOBS_type = split(JOBS_type)
-  For each a in JOBS_type
-    If a <> "" then
-      b = ucase(left(a, 1))
-      c = LCase(right(a, len(a) -1))
-      new_JOBS_type = new_JOBS_type & b & c & " "
+  For each JOBS_part in JOBS_type
+    If JOBS_part <> "" then
+      first_letter = ucase(left(JOBS_part, 1))
+      other_letters = LCase(right(JOBS_part, len(JOBS_part) -1))
+      new_JOBS_type = new_JOBS_type & first_letter & other_letters & " "
     End if
   Next
 ' Navigates to the FS PIC
@@ -400,17 +400,17 @@ Function add_JOBS_to_variable(variable_name_for_JOBS) 'x represents the name of 
   End if
 End function
 
-Function add_OTHR_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_OTHR_to_variable(OTHR_variable)
   EMReadScreen OTHR_type, 16, 6, 43
   OTHR_type = trim(OTHR_type)
   EMReadScreen OTHR_amt, 10, 8, 40
   OTHR_amt = trim(OTHR_amt)
   OTHR_amt = "$" & OTHR_amt
-  x = x & trim(OTHR_type) & ", (" & OTHR_amt & ").; "
+  OTHR_variable = OTHR_variable & trim(OTHR_type) & ", (" & OTHR_amt & ").; "
   new_OTHR_type = ""
 End function
 
-Function add_RBIC_to_variable(variable_name_for_RBIC) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_RBIC_to_variable(variable_name_for_RBIC)
 	EMReadScreen RBIC_month, 5, 20, 55
 	RBIC_month = replace(RBIC_month, " ", "/")
 	EMReadScreen RBIC_type, 14, 5, 48
@@ -494,18 +494,17 @@ Function add_RBIC_to_variable(variable_name_for_RBIC) 'x represents the name of 
 	End if
 End function
 
-Function add_REST_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_REST_to_variable(REST_variable)
   EMReadScreen REST_type, 16, 6, 41
   REST_type = trim(REST_type)
   EMReadScreen REST_amt, 10, 8, 41
   REST_amt = trim(REST_amt)
   REST_amt = "$" & REST_amt
-  x = x & trim(REST_type) & ", (" & REST_amt & ").; "
+  REST_variable = REST_variable & trim(REST_type) & ", (" & REST_amt & ").; "
   new_REST_type = ""
 End function
 
-
-Function add_SECU_to_variable(x) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_SECU_to_variable(SECU_variable)
   EMReadScreen SECU_amt, 8, 10, 52
   SECU_amt = trim(SECU_amt)
   SECU_amt = "$" & SECU_amt
@@ -513,10 +512,10 @@ Function add_SECU_to_variable(x) 'x represents the name of the variable (example
   EMReadScreen SECU_location, 20, 8, 50
   SECU_location = replace(SECU_location, "_", "")
   SECU_location = split(SECU_location)
-  For each a in SECU_location
-    If a <> "" then
-      b = ucase(left(a, 1))
-      c = LCase(right(a, len(a) -1))
+  For each SECU_part in SECU_location
+    If SECU_part <> "" then
+      first_letter = ucase(left(SECU_part, 1))
+      other_letters = LCase(right(SECU_part, len(SECU_part) -1))
       If len(a) > 3 then
         new_SECU_location = new_SECU_location & b & c & " "
       Else
@@ -530,11 +529,11 @@ Function add_SECU_to_variable(x) 'x represents the name of the variable (example
   If SECU_ver = "3" then SECU_ver = "verified via phone"
   If SECU_ver = "5" then SECU_ver = "other doc verified"
   If SECU_ver = "N" then SECU_ver = "no proof provided"
-  x = x & SECU_type & " at " & new_SECU_location & " (" & SECU_amt & "), " & SECU_ver & ".; "
+  SECU_variable = SECU_variable & SECU_type & " at " & new_SECU_location & " (" & SECU_amt & "), " & SECU_ver & ".; "
   new_SECU_location = ""
 End function
 
-Function add_UNEA_to_variable(variable_name_for_UNEA) 'x represents the name of the variable (example: assets vs. spousal_assets)
+Function add_UNEA_to_variable(variable_name_for_UNEA)
   EMReadScreen UNEA_month, 5, 20, 55
   UNEA_month = replace(UNEA_month, " ", "/")
   EMReadScreen UNEA_type, 16, 5, 40
@@ -639,13 +638,13 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         ABPS_current = replace(ABPS_current, "  First:", ",")
         ABPS_current = replace(ABPS_current, "_", "")
         ABPS_current = split(ABPS_current)
-        For each a in ABPS_current
-          b = ucase(left(a, 1))
-          c = LCase(right(a, len(a) -1))
-          If len(a) > 1 then
-            new_ABPS_current = new_ABPS_current & b & c & " "
+        For each ABPS_part in ABPS_current
+          first_letter = ucase(left(ABPS_part, 1))
+          other_letters = LCase(right(ABPS_part, len(ABPS_part) -1))
+          If len(ABPS_part) > 1 then
+            new_ABPS_current = new_ABPS_current & first_letter & other_letters & " "
           Else
-            new_ABPS_current = new_ABPS_current & a & " "
+            new_ABPS_current = new_ABPS_current & ABPS_part & " "
           End if
         Next
         ABPS_row = 15 'Setting variable for do...loop
@@ -1177,17 +1176,17 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
 				End if
 			Next
 			'Create a list of members covered by this insurance
-			y = 15 : x = 30
+			INSA_row = 15 : INSA_col = 30
 			insured_count = 0
 			member_list = ""
 			Do
-				EMReadScreen insured_member, 2, y, x
+				EMReadScreen insured_member, 2, INSA_row, INSA_col
 				If insured_member <> "__" then 
 					if member_list = "" then member_list = insured_member
 					if member_list <> "" then member_list = member_list & ", " & insured_member
-					x = x + 4
-					If x = 70 then
-						x = 30 : y = 16
+					INSA_col = INSA_col + 4
+					If INSA_col = 70 then
+						INSA_col = 30 : INSA_row = 16
 					End If
 				End If
 			loop until insured_member = "__"
@@ -1456,14 +1455,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         EMReadScreen STWK_employer, 30, 6, 46
         STWK_employer = replace(STWK_employer, "_", "")
         STWK_employer = split(STWK_employer)
-        For each a in STWK_employer
-          If a <> "" then
-            b = ucase(left(a, 1))
-            c = LCase(right(a, len(a) -1))
-            If len(a) > 3 then
-              new_STWK_employer = new_STWK_employer & b & c & " "
+        For each STWK_part in STWK_employer
+          If STWK_part <> "" then
+            first_letter = ucase(left(STWK_part, 1))
+            other_letters = LCase(right(STWK_part, len(STWK_part) -1))
+            If len(STWK_part) > 3 then
+              new_STWK_employer = new_STWK_employer & first_letter & other_letters & " "
             Else
-              new_STWK_employer = new_STWK_employer & a & " "
+              new_STWK_employer = new_STWK_employer & STWK_part & " "
             End if
           End if
         Next
@@ -1553,7 +1552,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
 	
 	EmreadScreen read_abawd_status, 2, 13, 50
 	If read_abawd_status = 01 THEN  abawd_status = "ABAWD = work reg exempt."
-      If read_abawd_status = 02 THEN  abawd_status = "ABAWD = < age 18."
+    If read_abawd_status = 02 THEN  abawd_status = "ABAWD = < age 18."
 	If read_abawd_status = 03 THEN  abawd_status = "ABAWD = age 50+."
 	If read_abawd_status = 04 THEN  abawd_status = "ABAWD = crgvr of minor child."		
 	If read_abawd_status = 05 THEN  abawd_status = "ABAWD = pregnant."
@@ -1567,7 +1566,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
 	If read_abawd_status = 13 THEN  abawd_status = "ABAWD = ABAWD extension."
 	If read_abawd_status = "__" THEN  abawd_status = "WREG = blank"
 
-
 	variable_written_to = variable_written_to & "Member " & HH_member & "- " & WREG_status & ", " & abawd_status & "; "
      END IF
     Next
@@ -1575,26 +1573,6 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
   variable_written_to = trim(variable_written_to) '-----------------------------------------------------------------------------------------cleaning up editbox
   if right(variable_written_to, 1) = ";" then variable_written_to = left(variable_written_to, len(variable_written_to) - 1)
 End function
-
-Function add_months(D,E,F)
-  'D = months to Add or Subtract 
-  'E = Starting Date
-  'F = Var to name the return variable
-  calc_date = DateAdd("m", D, E)
-  A = calc_date
-  B = calc_date
-  C = calc_date	
-  A = Replace(Left(A, 2), "/", "")
-  If len(A) = 1 then A = "0"&A
-  If Mid(Mid(B, 3, 3),2,1) = "/" then
-	B = "0"&Left(Mid(B, 3, 3),1)
-  ElseIf Mid(Mid(B, 3, 3),2,1) <> "/" then
-	B = Replace(Mid(B, 3, 3), "/", "")
-	If len(B) = 1 then B = "0"&B
-  End If
-  C = Right(C,2)
-  F = A & "/" & B & "/" & C
-End Function
 
 function back_to_SELF
   Do
@@ -1795,11 +1773,11 @@ Function excel_open(file_url, visible_status, alerts_status, ObjExcel, objWorkbo
 	objExcel.DisplayAlerts = alerts_status
 End Function
 
-Function find_variable(x, y, z) 'x is string, y is variable, z is length of new variable
+Function find_variable(opening_string, variable_name, length_of_variable)
   row = 1
   col = 1
-  EMSearch x, row, col
-  If row <> 0 then EMReadScreen y, z, row, col + len(x)
+  EMSearch opening_string, row, col
+  If row <> 0 then EMReadScreen variable_name, length_of_variable, row, col + len(opening_string)
 End function
 
 'This function fixes the case for a phrase. For example, "ROBERT P. ROBERTSON" becomes "Robert P. Robertson". 
@@ -1866,63 +1844,62 @@ End function
 
 Function HH_member_custom_dialog(HH_member_array)
 
-CALL Navigate_to_MAXIS_screen("STAT", "MEMB")   'navigating to stat memb to gather the ref number and name. 
+	CALL Navigate_to_MAXIS_screen("STAT", "MEMB")   'navigating to stat memb to gather the ref number and name. 
+	
+	DO								'reads the reference number, last name, first name, and then puts it into a single string then into the array
+		EMReadscreen ref_nbr, 3, 4, 33
+		EMReadscreen last_name, 5, 6, 30
+		EMReadscreen first_name, 7, 6, 63
+		EMReadscreen Mid_intial, 1, 6, 79
+		last_name = replace(last_name, "_", "") & " "
+		first_name = replace(first_name, "_", "") & " "
+		mid_initial = replace(mid_initial, "_", "")
+		client_string = ref_nbr & last_name & first_name & mid_intial
+		client_array = client_array & client_string & "|"
+		transmit
+		Emreadscreen edit_check, 7, 24, 2	
+	LOOP until edit_check = "ENTER A"			'the script will continue to transmit through memb until it reaches the last page and finds the ENTER A edit on the bottom row. 
+	
+	client_array = TRIM(client_array)
+	test_array = split(client_array, "|")
+	total_clients = Ubound(test_array)			'setting the upper bound for how many spaces to use from the array
 
-DO								'reads the reference number, last name, first name, and then puts it into a single string then into the array
-	EMReadscreen ref_nbr, 3, 4, 33
-	EMReadscreen last_name, 5, 6, 30
-	EMReadscreen first_name, 7, 6, 63
-	EMReadscreen Mid_intial, 1, 6, 79
-	last_name = replace(last_name, "_", "") & " "
-	first_name = replace(first_name, "_", "") & " "
-	mid_initial = replace(mid_initial, "_", "")
-	client_string = ref_nbr & last_name & first_name & mid_intial
-	client_array = client_array & client_string & "|"
-	transmit
-	Emreadscreen edit_check, 7, 24, 2	
-LOOP until edit_check = "ENTER A"			'the script will continue to transmit through memb until it reaches the last page and finds the ENTER A edit on the bottom row. 
+	DIM all_client_array()
+	ReDim all_clients_array(total_clients, 1)
 
-client_array = TRIM(client_array)
-test_array = split(client_array, "|")
-total_clients = Ubound(test_array)			'setting the upper bound for how many spaces to use from the array
-
-DIM all_client_array()
-ReDim all_clients_array(total_clients, 1)
-
-FOR x = 0 to total_clients				'using a dummy array to build in the autofilled check boxes into the array used for the dialog.
-	Interim_array = split(client_array, "|")
-	all_clients_array(x, 0) = Interim_array(x)
-	all_clients_array(x, 1) = 1
-NEXT
-
-BEGINDIALOG HH_memb_dialog, 0, 0, 191, (35 + (total_clients * 15)), "HH Member Dialog"   'Creates the dynamic dialog. The height will change based on the number of clients it finds.
-	Text 10, 5, 105, 10, "Household members to look at:"						
-	FOR i = 0 to total_clients										'For each person/string in the first level of the array the script will create a checkbox for them with height dependant on their order read
-		IF all_clients_array(i, 0) <> "" THEN checkbox 10, (20 + (i * 15)), 120, 10, all_clients_array(i, 0), all_clients_array(i, 1)  'Ignores and blank scanned in persons/strings to avoid a blank checkbox
+	FOR x = 0 to total_clients				'using a dummy array to build in the autofilled check boxes into the array used for the dialog.
+		Interim_array = split(client_array, "|")
+		all_clients_array(x, 0) = Interim_array(x)
+		all_clients_array(x, 1) = 1
 	NEXT
-	ButtonGroup ButtonPressed
-	OkButton 135, 10, 50, 15
-	CancelButton 135, 30, 50, 15
-ENDDIALOG
+
+	BEGINDIALOG HH_memb_dialog, 0, 0, 191, (35 + (total_clients * 15)), "HH Member Dialog"   'Creates the dynamic dialog. The height will change based on the number of clients it finds.
+		Text 10, 5, 105, 10, "Household members to look at:"						
+		FOR i = 0 to total_clients										'For each person/string in the first level of the array the script will create a checkbox for them with height dependant on their order read
+			IF all_clients_array(i, 0) <> "" THEN checkbox 10, (20 + (i * 15)), 120, 10, all_clients_array(i, 0), all_clients_array(i, 1)  'Ignores and blank scanned in persons/strings to avoid a blank checkbox
+		NEXT
+		ButtonGroup ButtonPressed
+		OkButton 135, 10, 50, 15
+		CancelButton 135, 30, 50, 15
+	ENDDIALOG
 													'runs the dialog that has been dynamically created. Streamlined with new functions.
-Dialog HH_memb_dialog
-If buttonpressed = 0 then stopscript
-check_for_maxis(True)
+	Dialog HH_memb_dialog
+	If buttonpressed = 0 then stopscript
+	check_for_maxis(True)
 
-HH_member_array = ""					
-
-FOR i = 0 to total_clients
-	IF all_clients_array(i, 0) <> "" THEN 						'creates the final array to be used by other scripts. 
-		IF all_clients_array(i, 1) = 1 THEN						'if the person/string has been checked on the dialog then the reference number portion (left 2) will be added to new HH_member_array
-			'msgbox all_clients_
-			HH_member_array = HH_member_array & left(all_clients_array(i, 0), 2) & " "
+	HH_member_array = ""					
+	
+	FOR i = 0 to total_clients
+		IF all_clients_array(i, 0) <> "" THEN 						'creates the final array to be used by other scripts. 
+			IF all_clients_array(i, 1) = 1 THEN						'if the person/string has been checked on the dialog then the reference number portion (left 2) will be added to new HH_member_array
+				'msgbox all_clients_
+				HH_member_array = HH_member_array & left(all_clients_array(i, 0), 2) & " "
+			END IF
 		END IF
-	END IF
-NEXT
-
-HH_member_array = TRIM(HH_member_array)							'Cleaning up array for ease of use.
-HH_member_array = SPLIT(HH_member_array, " ")
-
+	NEXT
+	
+	HH_member_array = TRIM(HH_member_array)							'Cleaning up array for ease of use.
+	HH_member_array = SPLIT(HH_member_array, " ")
 End function
 
 function log_usage_stats_without_closing 'For use when logging usage stats but then running another script, i.e. DAIL scrubber
@@ -3290,8 +3267,8 @@ Function maxis_check_function											'DEPRECIATED AS OF 01/20/2015.
 	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
 End function
 
-Function navigate_to_screen(x, y)										'DEPRECIATED AS OF 03/09/2015.
-	call navigate_to_MAXIS_screen(x, y)
+Function navigate_to_screen(MAXIS_function, MAXIS_command)										'DEPRECIATED AS OF 03/09/2015.
+	call navigate_to_MAXIS_screen(MAXIS_function, MAXIS_command)
 End function
 
 Function write_editbox_in_case_note(bullet, variable, length_of_indent) 'DEPRECIATED AS OF 01/20/2015. 
@@ -3817,11 +3794,11 @@ FUNCTION write_panel_to_MAXIS_DCEX(DCEX_provider, DCEX_reason, DCEX_subsidy, DCE
 		EMWritescreen DCEX_child_number5_retro, 15, 48
 		EMWritescreen DCEX_child_number6_retro, 16, 48
 		EMWritescreen DCEX_child_number1_pro, 11, 63
-		EMWritescreen DCEX_child_number2_pro, 11, 63
-		EMWritescreen DCEX_child_number3_pro, 11, 63
-		EMWritescreen DCEX_child_number4_pro, 11, 63
-		EMWritescreen DCEX_child_number5_pro, 11, 63
-		EMWritescreen DCEX_child_number6_pro, 11, 63
+		EMWritescreen DCEX_child_number2_pro, 12, 63
+		EMWritescreen DCEX_child_number3_pro, 13, 63
+		EMWritescreen DCEX_child_number4_pro, 14, 63
+		EMWritescreen DCEX_child_number5_pro, 15, 63
+		EMWritescreen DCEX_child_number6_pro, 16, 63
 	ELSE
 		PF9
 		'---...if the script is PF9'ing, it is ONLY because it is going to enter information in the HC Expense sub-menu.
@@ -4344,7 +4321,6 @@ Function write_panel_to_MAXIS_INSA(insa_pers_coop_ohi, insa_good_cause_status, i
 	NEXT
 	
 	transmit
-
 End Function
 
 FUNCTION write_panel_to_MAXIS_JOBS(jobs_number, jobs_inc_type, jobs_inc_verif, jobs_employer_name, jobs_inc_start, jobs_wkly_hrs, jobs_hrly_wage, jobs_pay_freq)
@@ -4614,14 +4590,7 @@ End Function
 Function write_panel_to_MAXIS_PDED(PDED_wid_deduction, PDED_adult_child_disregard, PDED_wid_disregard, PDED_unea_income_deduction_reason, PDED_unea_income_deduction_value, PDED_earned_income_deduction_reason, PDED_earned_income_deduction_value, PDED_ma_epd_inc_asset_limit, PDED_guard_fee, PDED_rep_payee_fee, PDED_other_expense, PDED_shel_spcl_needs, PDED_excess_need, PDED_restaurant_meals)
 	call navigate_to_screen("STAT","PDED")
 	call create_panel_if_nonexistent
-	
-	'====================== FIX LATER ============================
-	
-	'Pickle Disregard
-		'ADD ME LATER
-		
-	'=============================================================
-		
+
 	'Disa Widow/ers Deductionpded_shel_spcl_needs
 	If pded_wid_deduction <> "" then
 		pded_wid_deduction = ucase(pded_wid_deduction)
@@ -4669,15 +4638,6 @@ Function write_panel_to_MAXIS_PDED(PDED_wid_deduction, PDED_adult_child_disregar
 		pded_ma_epd_inc_asset_limit = left(pded_ma_epd_inc_asset_limit,1)
 		EMWriteScreen pded_ma_epd_inc_asset_limit, 12, 65
 	End If
-	
-	'====================== FIX LATER ============================
-	
-	'Blind/Disa Student Child Disregard
-	'If  <> "" then
-		'ADD LOGIC LATER
-	'End If
-	
-	'=============================================================
 	
 	'Guardianship Fee
 	If pded_guard_fee <> "" then
@@ -5360,13 +5320,9 @@ FUNCTION write_panel_to_MAXIS_WREG(wreg_fs_pwe, wreg_fset_status, wreg_defer_fs,
 	transmit
 END FUNCTION
 
-
-
 FUNCTION write_TIKL_function(variable)									'DEPRECIATED AS OF 01/20/2015.
 	call write_variable_in_TIKL(variable)
 END FUNCTION
-
-
 
 '<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
 If beta_agency = True then 
