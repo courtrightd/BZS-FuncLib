@@ -4889,7 +4889,7 @@ FUNCTION write_panel_to_MAXIS_SHEL(SHEL_subsidized, SHEL_shared, SHEL_paid_to, S
 	EMWritescreen SHEL_subsidy_retro, 18, 37
 	EMWritescreen SHEL_subsidy_retro_ver, 18, 48
 	EMWritescreen SHEL_subsidy_pro, 18, 56
-	EMWritescreen SHEL_subsidy_pro, 18, 67
+	EMWritescreen SHEL_subsidy_pro_ver, 18, 67
 	transmit
 end function
 
