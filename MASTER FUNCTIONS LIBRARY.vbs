@@ -3817,11 +3817,11 @@ FUNCTION write_panel_to_MAXIS_DCEX(DCEX_provider, DCEX_reason, DCEX_subsidy, DCE
 		EMWritescreen DCEX_child_number5_retro, 15, 48
 		EMWritescreen DCEX_child_number6_retro, 16, 48
 		EMWritescreen DCEX_child_number1_pro, 11, 63
-		EMWritescreen DCEX_child_number2_pro, 11, 63
-		EMWritescreen DCEX_child_number3_pro, 11, 63
-		EMWritescreen DCEX_child_number4_pro, 11, 63
-		EMWritescreen DCEX_child_number5_pro, 11, 63
-		EMWritescreen DCEX_child_number6_pro, 11, 63
+		EMWritescreen DCEX_child_number2_pro, 12, 63
+		EMWritescreen DCEX_child_number3_pro, 13, 63
+		EMWritescreen DCEX_child_number4_pro, 14, 63
+		EMWritescreen DCEX_child_number5_pro, 15, 63
+		EMWritescreen DCEX_child_number6_pro, 16, 63
 	ELSE
 		PF9
 		'---...if the script is PF9'ing, it is ONLY because it is going to enter information in the HC Expense sub-menu.
