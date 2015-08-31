@@ -3345,10 +3345,7 @@ Function write_panel_to_MAXIS_ABPS(abps_supp_coop,abps_gc_status)
 				row = 15
 			End If		
 		next
-		IF abps_act_date <> "" THEN call MAXIS_dater(date, abps_act_date, "Actual Date")
-		EMWriteScreen left(abps_act_date,2)			, 18, 38
-		EMWriteScreen mid(abps_act_date,4,2)		, 18, 41
-		EMWriteScreen "20" & right(abps_act_date,2)	, 18, 44
+		IF abps_act_date <> "" THEN call create_MAXIS_friendly_date_with_YYYY(date, 0, 18, 38) 
 		EMWriteScreen reference_number, 4, 47		'Enters the reference_number
 		If abps_supp_coop <> "" then
 			abps_supp_coop = ucase(abps_supp_coop)
