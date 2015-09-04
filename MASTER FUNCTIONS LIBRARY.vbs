@@ -4965,6 +4965,7 @@ FUNCTION write_panel_to_MAXIS_SHEL(SHEL_subsidized, SHEL_shared, SHEL_paid_to, S
 	EMWritescreen SHEL_mortgage_retro, 13, 37
 	EMWritescreen SHEL_mortgage_retro_ver, 13, 48
 	EMWritescreen SHEL_mortgage_pro, 13, 56
+	EMwritescreen SHEL_mortgage_pro_ver, 13, 67	
 	EMWritescreen SHEL_insur_retro, 14, 37 
 	EMWritescreen SHEL_insur_retro_ver, 14, 48
 	EMWritescreen SHEL_insur_pro, 14, 56
