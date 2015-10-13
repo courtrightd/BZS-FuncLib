@@ -3032,6 +3032,8 @@ Function write_MAXIS_info_to_ES_database(ESCaseNbr, ESMembNbr, ESMembName, EsSan
 		ES_update_str = "ESMembName = " & ESMembName & ", ESSanctionPercentage = " & ESSanctionPercentage & ", ESEmpsStatus = " & ESEmpsStatus & ", ESTANFMosUsed = " & ESTANFMosUsed &_
 				", ESExtensionReason = " & ESExtensionReason & ", ESDisaEnd = " & ESDisaEnd & ", ESPrimaryActivity = " & ESPrimaryActivity & ", ESDate = " & ESDate & ", ESSite = " &_
 				ESSite & ", ESCounselor = " & ESCounselor & ", ESActive = " & ESActive & " WHERE ESCaseNbr = " & ESCaseNbr & " AND ESMembNbr = " & ESMembNbr & ""
+		msgbox ES_update_str
+		msgbox "here is the update about to happen"
 		objConnection.Execute "UPDATE ESTrackingTbl SET " & ES_update_str 'Here we are actually writing to the database
 		objConnection.Close 
 		set rs = nothing
@@ -3066,6 +3068,7 @@ Function write_MAXIS_info_to_ES_database(ESCaseNbr, ESMembNbr, ESMembName, EsSan
 		NEXT
 		values_string = values_string & ")"
 		'Inserting the new record
+	msgbox "here is the insert"
 		objConnection.Execute "INSERT INTO ESTrackingTbl (ESCaseNbr, ESMembNbr, ESMembName, EsSanctionPercentage, ESEmpsStatus, ESTANFMosUsed, ESExtensionReason, ESDisaEnd, ESPrimaryActivity, ESDate, ESSite, ESCounselor, ESActive) VALUES (" & values_string 
 		objConnection.Close
 	END IF
