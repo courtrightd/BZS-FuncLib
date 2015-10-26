@@ -1986,6 +1986,7 @@ FUNCTION MAXIS_dialog_navigation
 	If ButtonPressed = ELIG_MFIP_button then call navigate_to_screen("elig", "MFIP")
 	If ButtonPressed = ELIG_MSA_button then call navigate_to_screen("elig", "MSA_")
 	If ButtonPressed = ELIG_WB_button then call navigate_to_screen("elig", "WB__")
+	If ButtonPressed = ELIG_GRH_button then call navigate_to_screen("elig", "GRH_")
 	If ButtonPressed = FACI_button then call navigate_to_screen("stat", "FACI")
 	If ButtonPressed = FMED_button then call navigate_to_screen("stat", "FMED")
 	If ButtonPressed = HCMI_button then call navigate_to_screen("stat", "HCMI")
