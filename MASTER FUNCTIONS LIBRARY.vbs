@@ -1838,14 +1838,22 @@ Function MAXIS_background_check
 End function
 
 Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
-	row = 1
-	col = 1
-	EMSearch "Case Nbr:", row, col
-	If row <> 0 then 
-		EMReadScreen variable_for_MAXIS_case_number, 8, row, col + 10
+	EMReadScreen variable_for_SELF_check, 4, 2, 50
+	IF variable_for_SELF_check = "SELF" then 	
+		EMReadScreen variable_for_MAXIS_case_number, 8, 18, 43
 		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
 		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
-	End if
+	ELSE
+		row = 1
+		col = 1
+		EMSearch "Case Nbr:", row, col
+		If row <> 0 then 
+			EMReadScreen variable_for_MAXIS_case_number, 8, row, col + 10
+			variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
+			variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
+		END IF
+	END IF
+	
 End function
 
 Function HH_member_custom_dialog(HH_member_array)
