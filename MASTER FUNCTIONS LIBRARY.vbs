@@ -2507,7 +2507,7 @@ function script_end_procedure_wsh(closing_message) 'For use when running a scrip
 end function
 
 'Function to sort a numeric function ascending (lowest to biggest)
-FUNCTION sort_numeric_array_ascending(values_array, separate_character, sorted_values_array)
+FUNCTION sort_numeric_array_ascending(values_array, separate_character, output_array)
 	'trimming and splitting the array	
 	values_array = trim(values_array)
 	values_array = split(values_array, separate_character)
@@ -2576,7 +2576,7 @@ FUNCTION sort_numeric_array_ascending(values_array, separate_character, sorted_v
 END FUNCTION
 
 'Function for sorting numeric array descending (biggest to smallest)
-FUNCTION sort_numeric_array_descending(values_array, separate_character, sorted_values_array)
+FUNCTION sort_numeric_array_descending(values_array, separate_character, output_array)
 	'trimming and splitting the array	
 	values_array = trim(values_array)
 	values_array = split(values_array, separate_character)
