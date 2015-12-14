@@ -2044,6 +2044,7 @@ FUNCTION MAXIS_dialog_navigation
 	If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
 	If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
 	If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
+	If ButtonPressed = SPON_button then call navigate_to_screen("stat", "SPON")
 	If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
 	If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
 	If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
