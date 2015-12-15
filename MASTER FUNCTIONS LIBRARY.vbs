@@ -2213,6 +2213,7 @@ function navigation_buttons 'this works by calling the navigation_buttons functi
   If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
   If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
   If ButtonPressed = SHEL_button then call navigate_to_screen("stat", "SHEL")
+  If ButtonPressed = SPON_button then call navigate_to_screen("stat", "SPON")
   If ButtonPressed = SWKR_button then call navigate_to_screen("stat", "SWKR")
   If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
   If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
