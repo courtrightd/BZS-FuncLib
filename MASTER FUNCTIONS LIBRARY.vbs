@@ -1432,6 +1432,21 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
       SHEL_expense = ""
     Next
+   Elseif panel_read_from = "SWKR" then '---------------------------------------------------------------------------------------------------SWKR
+    EMReadScreen SWKR_name, 35, 6, 32
+    SWKR_name = replace(AREP_name, "_", "")
+    SWKR_name = split(AREP_name)
+    For each word in SWKR_name
+      If word <> "" then
+        first_letter_of_word = ucase(left(word, 1))
+        rest_of_word = LCase(right(word, len(word) -1))
+        If len(word) > 2 then
+          variable_written_to = variable_written_to & first_letter_of_word & rest_of_word & " "
+        Else
+          variable_written_to = variable_written_to & word & " "
+        End if
+      End if
+    Next
   Elseif panel_read_from = "STWK" then '----------------------------------------------------------------------------------------------------STWK
 	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
@@ -2029,6 +2044,7 @@ FUNCTION MAXIS_dialog_navigation
 	If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
 	If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
 	If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
+	If ButtonPressed = SPON_button then call navigate_to_screen("stat", "SPON")
 	If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
 	If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
 	If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
