@@ -4544,12 +4544,12 @@ FUNCTION write_panel_to_MAXIS_HEST(HEST_FS_choice_date, HEST_first_month, HEST_h
 	transmit
 End function
 
-Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG_status_date, IMIG_status_ver, IMIG_status_LPR_adj_from, IMIG_nationality)
+Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG_status_date, IMIG_status_ver, IMIG_status_LPR_adj_from, IMIG_nationality, IMIG_40_soc_sec, IMIG_40_soc_sec_verif, IMIG_battered_spouse_child, IMIG_battered_spouse_child_verif, IMIG_military_status, IMIG_military_status_verif, IMIG_hmong_lao_nat_amer, IMIG_st_prog_esl_ctzn_coop, IMIG_st_prog_esl_ctzn_coop_verif, IMIG_fss_esl_skills_training)
 	call navigate_to_screen("STAT", "IMIG")
 	call ERRR_screen_check
 	call create_panel_if_nonexistent
-	call create_MAXIS_friendly_date(date, 0, 5, 45)						'Writes actual date, needs to add 2000 as this is weirdly a 4 digit year
-	EMWriteScreen datepart("yyyy", date), 5, 51
+	call create_MAXIS_friendly_date(APPL_date, 0, 5, 45)						'Writes actual date, needs to add 2000 as this is weirdly a 4 digit year
+	EMWriteScreen datepart("yyyy", APPL_date), 5, 51
 	EMWriteScreen IMIG_imigration_status, 6, 45							'Writes imig status
 	IF IMIG_entry_date <> "" THEN
 		call create_MAXIS_friendly_date(IMIG_entry_date, 0, 7, 45)			'Enters year as a 2 digit number, so have to modify manually
@@ -4562,6 +4562,16 @@ Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG
 	EMWriteScreen IMIG_status_ver, 8, 45								'Enters status ver
 	EMWriteScreen IMIG_status_LPR_adj_from, 9, 45						'Enters status LPR adj from
 	EMWriteScreen IMIG_nationality, 10, 45								'Enters nationality
+	EMwritescreen IMIG_40_soc_sec, 13, 56								'Enters info about Social Security Credits
+	EMwritescreen IMIG_40_soc_sec_verif, 13, 71	
+	EMwritescreen IMIG_battered_spouse_child, 14, 56					'Enters info about Battered Child/Spouse claims 
+	EMwritescreen IMIG_battered_spouse_child_verif, 14, 71 
+	EMwritescreen IMIG_military_status, 15, 56 							'Enters info about possible military status
+	EMwritescreen IMIG_military_status_verif, 15, 71 
+	EMwritescreen IMIG_hmong_lao_nat_amer, 16, 56 						'Enters status of particular nationalities/identity
+	EMwritescreen IMIG_st_prog_esl_ctzn_coop, 17, 56 					'Enters information about ESL/Citizen cooperation status
+	EMwritescreen IMIG_st_prog_esl_ctzn_coop_verif, 17, 71 
+	EMwritescreen IMIG_fss_esl_skills_training, 18, 56 					'Enters information about ESL Skills course
 	transmit
 	transmit
 End function
