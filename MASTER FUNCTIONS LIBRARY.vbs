@@ -1432,10 +1432,10 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
       SHEL_expense = ""
     Next
-   Elseif panel_read_from = "SWKR" then '---------------------------------------------------------------------------------------------------SWKR
+ Elseif panel_read_from = "SWKR" then '---------------------------------------------------------------------------------------------------SWKR
     EMReadScreen SWKR_name, 35, 6, 32
-    SWKR_name = replace(AREP_name, "_", "")
-    SWKR_name = split(AREP_name)
+    SWKR_name = replace(SWKR_name, "_", "")
+    SWKR_name = split(SWKR_name)
     For each word in SWKR_name
       If word <> "" then
         first_letter_of_word = ucase(left(word, 1))
