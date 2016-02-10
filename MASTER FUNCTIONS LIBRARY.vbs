@@ -1823,36 +1823,6 @@ Function get_to_MMIS_session_begin
   Loop until session_start = "SESSION TERMINATED"
 End function
 
-Function MAXIS_background_check
-	Do
-		call navigate_to_screen("STAT", "SUMM")
-		EMReadScreen SELF_check, 4, 2, 50
-		If SELF_check = "SELF" then
-			PF3
-			Pause 2
-		End if
-	Loop until SELF_check <> "SELF"
-End function
-
-Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
-	EMReadScreen variable_for_SELF_check, 4, 2, 50
-	IF variable_for_SELF_check = "SELF" then
-		EMReadScreen variable_for_MAXIS_case_number, 8, 18, 43
-		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
-		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
-	ELSE
-		row = 1
-		col = 1
-		EMSearch "Case Nbr:", row, col
-		If row <> 0 then
-			EMReadScreen variable_for_MAXIS_case_number, 8, row, col + 10
-			variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
-			variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
-		END IF
-	END IF
-
-End function
-
 Function HH_member_custom_dialog(HH_member_array)
 
 	CALL Navigate_to_MAXIS_screen("STAT", "MEMB")   'navigating to stat memb to gather the ref number and name.
@@ -1937,6 +1907,36 @@ function log_usage_stats_without_closing 'For use when logging usage stats but t
 		"VALUES ('" & user_ID & "', '" & date & "', '" & time & "', '" & name_of_script & "', " & script_run_time & ", '" & "" & "')", objConnection, adOpenStatic, adLockOptimistic
 	End if
 end function
+
+Function MAXIS_background_check
+	Do
+		call navigate_to_screen("STAT", "SUMM")
+		EMReadScreen SELF_check, 4, 2, 50
+		If SELF_check = "SELF" then
+			PF3
+			Pause 2
+		End if
+	Loop until SELF_check <> "SELF"
+End function
+
+Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
+	EMReadScreen variable_for_SELF_check, 4, 2, 50
+	IF variable_for_SELF_check = "SELF" then
+		EMReadScreen variable_for_MAXIS_case_number, 8, 18, 43
+		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
+		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
+	ELSE
+		row = 1
+		col = 1
+		EMSearch "Case Nbr:", row, col
+		If row <> 0 then
+			EMReadScreen variable_for_MAXIS_case_number, 8, row, col + 10
+			variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
+			variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
+		END IF
+	END IF
+
+End function
 
 'This function navigates to various panels in MAXIS. You need to name your buttons using the button names in the function.
 FUNCTION MAXIS_dialog_navigation
