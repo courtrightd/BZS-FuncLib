@@ -1578,6 +1578,25 @@ Function check_for_MAXIS(end_script)
 	Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS "
 End function
 
+
+Function check_for_MMIS(end_script) 
+'Sending MMIS back to the beginning screen and checking for a password prompt. If end_script is set to true, the script will end; if set to false, script will continue once password is entered
+	Do
+		transmit
+		row = 1
+		col = 1
+		EMSearch "MMIS", row, col
+		IF row <> 1 then
+			If end_script = True then 
+				script_end_procedure("You do not appear to be in MMIS. You may be passworded out. Please check your MMIS screen and try again.")
+			Else
+				warning_box = MsgBox("You do not appear to be in MMIS. You may be passworded out. Please check your MMIS screen and try again, or press ""cancel"" to exit the script.", vbOKCancel)
+				If warning_box = vbCancel then stopscript
+			End if
+		End if
+	Loop until row = 1
+End function
+
 Function check_for_password(are_we_passworded_out)
 	Transmit 'transmitting to see if the password screen appears
 	Emreadscreen password_check, 8, 2, 33 'checking for the word password which will indicate you are passworded out
