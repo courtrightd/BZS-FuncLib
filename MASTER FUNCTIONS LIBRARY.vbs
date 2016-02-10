@@ -2050,6 +2050,30 @@ FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the
 	End if
 END FUNCTION
 
+'Function for checking and changing the footer month to the MAXIS_footer_month & MAXIS_footer_year selected by the user in the inital dialog if necessary
+FUNCTION MAXIS_footer_month_confirmation	'Must use MAXIS_footer_month & MAXIS footer_year as variables for this function to work 
+	EMReadScreen SELF_check, 4, 2, 50			'Does this to check to see if we're on SELF screen
+	IF SELF_check = "SELF" THEN
+		EMReadScreen panel_footer_month, 2, 20, 43
+		EMReadScreen panel_footer_year, 2, 20, 46
+	ELSE
+		Call find_variable("Month: ", MAXIS_footer, 5)	'finding footer month and year if not on the SELF screen
+		panel_footer_month = left(MAXIS_footer, 2)
+		panel_footer_year = right(MAXIS_footer, 2)
+		If row <> 0 then 
+  			panel_footer_month = panel_footer_month		'Establishing variables
+			panel_footer_year =panel_footer_year
+		END IF
+	END IF
+	panel_date = panel_footer_month & panel_footer_year		'creating new variable combining month and year for the date listed on the MAXIS panel
+	dialog_date = MAXIS_footer_month & MAXIS_footer_year	'creating new variable combining the MAXIS_footer_month & MAXIS_footer_year to measure against the panel date
+	IF panel_date <> dialog_date then 						'if dates are not equal 
+		back_to_SELF		
+		EMWriteScreen MAXIS_footer_month, 20, 43			'goes back to self and enters the date that the user selcted'
+		EMWriteScreen MAXIS_footer_year, 20, 46
+	END IF
+END FUNCTION
+
 Function memb_navigation_next
   HH_memb_row = HH_memb_row + 1
   EMReadScreen next_HH_memb, 2, HH_memb_row, 3
