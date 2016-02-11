@@ -1578,6 +1578,25 @@ Function check_for_MAXIS(end_script)
 	Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS "
 End function
 
+
+Function check_for_MMIS(end_script) 
+'Sending MMIS back to the beginning screen and checking for a password prompt. If end_script is set to true, the script will end; if set to false, script will continue once password is entered
+	Do
+		transmit
+		row = 1
+		col = 1
+		EMSearch "MMIS", row, col
+		IF row <> 1 then
+			If end_script = True then 
+				script_end_procedure("You do not appear to be in MMIS. You may be passworded out. Please check your MMIS screen and try again.")
+			Else
+				warning_box = MsgBox("You do not appear to be in MMIS. You may be passworded out. Please check your MMIS screen and try again, or press ""cancel"" to exit the script.", vbOKCancel)
+				If warning_box = vbCancel then stopscript
+			End if
+		End if
+	Loop until row = 1
+End function
+
 Function check_for_password(are_we_passworded_out)
 	Transmit 'transmitting to see if the password screen appears
 	Emreadscreen password_check, 8, 2, 33 'checking for the word password which will indicate you are passworded out
@@ -1765,6 +1784,19 @@ Function find_variable(opening_string, variable_name, length_of_variable)
   If row <> 0 then EMReadScreen variable_name, length_of_variable, row, col + len(opening_string)
 End function
 
+
+FUNCTION find_MAXIS_worker_number(x_number)
+	EMReadScreen SELF_check, 4, 2, 50		'Does this to check to see if we're on SELF screen
+	IF SELF_check = "SELF" THEN				'if on the self screen then x # is read from coordinates
+		EMReadScreen x_number, 7, 22, 8
+	ELSE
+		Call find_variable("PW: ", x_number, 7)	'if not, then the PW: variable is searched to find the worker #
+		If isnumeric(MAXIS_worker_number) = true then 	 'making sure that the worker # is a number
+			MAXIS_worker_number = x_number				'delcares the MAXIS_worker_number to be the x_number
+		End if
+	END if
+END FUNCTION
+
 'This function fixes the case for a phrase. For example, "ROBERT P. ROBERTSON" becomes "Robert P. Robertson".
 '	It capitalizes the first letter of each word.
 Function fix_case(phrase_to_split, smallest_length_to_skip)										'Ex: fix_case(client_name, 3), where 3 means skip words that are 3 characters or shorter
@@ -1783,56 +1815,12 @@ Function fix_case(phrase_to_split, smallest_length_to_skip)										'Ex: fix_ca
 	phrase_to_split = output_phrase																'making the phrase_to_split equal to the output, so that it can be used by the rest of the script.
 End function
 
-
-FUNCTION find_MAXIS_worker_number(x_number)
-	EMReadScreen SELF_check, 4, 2, 50		'Does this to check to see if we're on SELF screen
-	IF SELF_check = "SELF" THEN				'if on the self screen then x # is read from coordinates
-		EMReadScreen x_number, 7, 22, 8
-	ELSE
-		Call find_variable("PW: ", x_number, 7)	'if not, then the PW: variable is searched to find the worker #
-		If isnumeric(MAXIS_worker_number) = true then 	 'making sure that the worker # is a number
-			MAXIS_worker_number = x_number				'delcares the MAXIS_worker_number to be the x_number
-		End if
-	END if
-END FUNCTION
-
-
 Function get_to_MMIS_session_begin
   Do
     EMSendkey "<PF6>"
     EMWaitReady 0, 0
     EMReadScreen session_start, 18, 1, 7
   Loop until session_start = "SESSION TERMINATED"
-End function
-
-Function MAXIS_background_check
-	Do
-		call navigate_to_screen("STAT", "SUMM")
-		EMReadScreen SELF_check, 4, 2, 50
-		If SELF_check = "SELF" then
-			PF3
-			Pause 2
-		End if
-	Loop until SELF_check <> "SELF"
-End function
-
-Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
-	EMReadScreen variable_for_SELF_check, 4, 2, 50
-	IF variable_for_SELF_check = "SELF" then
-		EMReadScreen variable_for_MAXIS_case_number, 8, 18, 43
-		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
-		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
-	ELSE
-		row = 1
-		col = 1
-		EMSearch "Case Nbr:", row, col
-		If row <> 0 then
-			EMReadScreen variable_for_MAXIS_case_number, 8, row, col + 10
-			variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
-			variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
-		END IF
-	END IF
-
 End function
 
 Function HH_member_custom_dialog(HH_member_array)
@@ -1919,6 +1907,36 @@ function log_usage_stats_without_closing 'For use when logging usage stats but t
 		"VALUES ('" & user_ID & "', '" & date & "', '" & time & "', '" & name_of_script & "', " & script_run_time & ", '" & "" & "')", objConnection, adOpenStatic, adLockOptimistic
 	End if
 end function
+
+Function MAXIS_background_check
+	Do
+		call navigate_to_screen("STAT", "SUMM")
+		EMReadScreen SELF_check, 4, 2, 50
+		If SELF_check = "SELF" then
+			PF3
+			Pause 2
+		End if
+	Loop until SELF_check <> "SELF"
+End function
+
+Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
+	EMReadScreen variable_for_SELF_check, 4, 2, 50
+	IF variable_for_SELF_check = "SELF" then
+		EMReadScreen variable_for_MAXIS_case_number, 8, 18, 43
+		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
+		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
+	ELSE
+		row = 1
+		col = 1
+		EMSearch "Case Nbr:", row, col
+		If row <> 0 then
+			EMReadScreen variable_for_MAXIS_case_number, 8, row, col + 10
+			variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
+			variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
+		END IF
+	END IF
+
+End function
 
 'This function navigates to various panels in MAXIS. You need to name your buttons using the button names in the function.
 FUNCTION MAXIS_dialog_navigation
@@ -2030,6 +2048,30 @@ FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the
 		MAXIS_footer_month = left(MAXIS_footer, 2)
 		MAXIS_footer_year = right(MAXIS_footer, 2)
 	End if
+END FUNCTION
+
+'Function for checking and changing the footer month to the MAXIS_footer_month & MAXIS_footer_year selected by the user in the inital dialog if necessary
+FUNCTION MAXIS_footer_month_confirmation	'Must use MAXIS_footer_month & MAXIS footer_year as variables for this function to work 
+	EMReadScreen SELF_check, 4, 2, 50			'Does this to check to see if we're on SELF screen
+	IF SELF_check = "SELF" THEN
+		EMReadScreen panel_footer_month, 2, 20, 43
+		EMReadScreen panel_footer_year, 2, 20, 46
+	ELSE
+		Call find_variable("Month: ", MAXIS_footer, 5)	'finding footer month and year if not on the SELF screen
+		panel_footer_month = left(MAXIS_footer, 2)
+		panel_footer_year = right(MAXIS_footer, 2)
+		If row <> 0 then 
+  			panel_footer_month = panel_footer_month		'Establishing variables
+			panel_footer_year =panel_footer_year
+		END IF
+	END IF
+	panel_date = panel_footer_month & panel_footer_year		'creating new variable combining month and year for the date listed on the MAXIS panel
+	dialog_date = MAXIS_footer_month & MAXIS_footer_year	'creating new variable combining the MAXIS_footer_month & MAXIS_footer_year to measure against the panel date
+	IF panel_date <> dialog_date then 						'if dates are not equal 
+		back_to_SELF		
+		EMWriteScreen MAXIS_footer_month, 20, 43			'goes back to self and enters the date that the user selcted'
+		EMWriteScreen MAXIS_footer_year, 20, 46
+	END IF
 END FUNCTION
 
 Function memb_navigation_next
