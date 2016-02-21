@@ -6,52 +6,6 @@
 'been tested in other scripts first. This document is actively used by live scripts, so it needs to be functionally complete at all times.
 '
 '============THAT MEANS THAT IF YOU BREAK THIS SCRIPT, ALL OTHER SCRIPTS ****STATEWIDE**** WILL NOT WORK! MODIFY WITH CARE!!!!!============
-'
-'
-'Here's the code to add (remove comments before using):
-'
-''LOADING FUNCTIONS LIBRARY FROM GITHUB REPOSITORY===========================================================================
-'IF IsEmpty(FuncLib_URL) = TRUE THEN	'Shouldn't load FuncLib if it already loaded once
-'	IF run_locally = FALSE or run_locally = "" THEN		'If the scripts are set to run locally, it skips this and uses an FSO below.
-'		IF default_directory = "C:\DHS-MAXIS-Scripts\Script Files\" THEN			'If the default_directory is C:\DHS-MAXIS-Scripts\Script Files, you're probably a scriptwriter and should use the master branch.
-'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/master/MASTER%20FUNCTIONS%20LIBRARY.vbs"
-'		ELSEIF beta_agency = "" or beta_agency = True then							'If you're a beta agency, you should probably use the beta branch.
-'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/BETA/MASTER%20FUNCTIONS%20LIBRARY.vbs"
-'		Else																		'Everyone else should use the release branch.
-'			FuncLib_URL = "https://raw.githubusercontent.com/MN-Script-Team/BZS-FuncLib/RELEASE/MASTER%20FUNCTIONS%20LIBRARY.vbs"
-'		End if
-'		SET req = CreateObject("Msxml2.XMLHttp.6.0")				'Creates an object to get a FuncLib_URL
-'		req.open "GET", FuncLib_URL, FALSE							'Attempts to open the FuncLib_URL
-'		req.send													'Sends request
-'		IF req.Status = 200 THEN									'200 means great success
-'			Set fso = CreateObject("Scripting.FileSystemObject")	'Creates an FSO
-'			Execute req.responseText								'Executes the script code
-'		ELSE														'Error message, tells user to try to reach github.com, otherwise instructs to contact Veronica with details (and stops script).
-'			MsgBox 	"Something has gone wrong. The code stored on GitHub was not able to be reached." & vbCr &_
-'					vbCr & _
-'					"Before contacting Veronica Cary, please check to make sure you can load the main page at www.GitHub.com." & vbCr &_
-'					vbCr & _
-'					"If you can reach GitHub.com, but this script still does not work, ask an alpha user to contact Veronica Cary and provide the following information:" & vbCr &_
-'					vbTab & "- The name of the script you are running." & vbCr &_
-'					vbTab & "- Whether or not the script is ""erroring out"" for any other users." & vbCr &_
-'					vbTab & "- The name and email for an employee from your IT department," & vbCr & _
-'					vbTab & vbTab & "responsible for network issues." & vbCr &_
-'					vbTab & "- The URL indicated below (a screenshot should suffice)." & vbCr &_
-'					vbCr & _
-'					"Veronica will work with your IT department to try and solve this issue, if needed." & vbCr &_
-'					vbCr &_
-'					"URL: " & FuncLib_URL
-'					script_end_procedure("Script ended due to error connecting to GitHub.")
-'		END IF
-'	ELSE
-'		FuncLib_URL = "C:\BZS-FuncLib\MASTER FUNCTIONS LIBRARY.vbs"
-'		Set run_another_script_fso = CreateObject("Scripting.FileSystemObject")
-'		Set fso_command = run_another_script_fso.OpenTextFile(FuncLib_URL)
-'		text_from_the_other_script = fso_command.ReadAll
-'		fso_command.Close
-'		Execute text_from_the_other_script
-'	END IF
-'END IF
 
 'GLOBAL CONSTANTS----------------------------------------------------------------------------------------------------
 Dim checked, unchecked, cancel, OK, blank		'Declares this for Option Explicit users
@@ -67,6 +21,14 @@ Dim STATS_counter, STATS_manualtime, STATS_denomination
 'Time arrays which can be used to fill an editbox with the convert_array_to_droplist_items function
 time_array_15_min = array("7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM", "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM", "9:00 AM", "9:15 AM", "9:30 AM", "9:45 AM", "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM", "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM", "12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM", "1:00 PM", "1:15 PM", "1:30 PM", "1:45 PM", "2:00 PM", "2:15 PM", "2:30 PM", "2:45 PM", "3:00 PM", "3:15 PM", "3:30 PM", "3:45 PM", "4:00 PM", "4:15 PM", "4:30 PM", "4:45 PM", "5:00 PM", "5:15 PM", "5:30 PM", "5:45 PM", "6:00 PM")
 time_array_30_min = array("7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM")
+
+'Determines CM and CM+1 month and year using the two rightmost chars of both the month and year. Adds a "0" to all months, which will only pull over if it's a single-digit-month
+Dim CM_mo, CM_yr, CM_plus_1_mo, CM_plus_1_yr
+'var equals...  the right part of...    the specific part...    of either today or next month... just the right 2 chars!
+CM_mo =         right("0" &             DatePart("m",           date                             ), 2)
+CM_yr =         right(                  DatePart("yyyy",        date                             ), 2)
+CM_plus_1_mo =  right("0" &             DatePart("m",           DateAdd("m", 1, date)            ), 2)
+CM_plus_1_yr =  right(                  DatePart("yyyy",        DateAdd("m", 1, date)            ), 2)
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
@@ -1434,6 +1396,21 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       End if
       SHEL_expense = ""
     Next
+ Elseif panel_read_from = "SWKR" then '---------------------------------------------------------------------------------------------------SWKR
+    EMReadScreen SWKR_name, 35, 6, 32
+    SWKR_name = replace(SWKR_name, "_", "")
+    SWKR_name = split(SWKR_name)
+    For each word in SWKR_name
+      If word <> "" then
+        first_letter_of_word = ucase(left(word, 1))
+        rest_of_word = LCase(right(word, len(word) -1))
+        If len(word) > 2 then
+          variable_written_to = variable_written_to & first_letter_of_word & rest_of_word & " "
+        Else
+          variable_written_to = variable_written_to & word & " "
+        End if
+      End if
+    Next
   Elseif panel_read_from = "STWK" then '----------------------------------------------------------------------------------------------------STWK
 	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
@@ -1599,6 +1576,25 @@ Function check_for_MAXIS(end_script)
 			End if
 		End if
 	Loop until MAXIS_check = "MAXIS" or MAXIS_check = "AXIS "
+End function
+
+
+Function check_for_MMIS(end_script) 
+'Sending MMIS back to the beginning screen and checking for a password prompt. If end_script is set to true, the script will end; if set to false, script will continue once password is entered
+	Do
+		transmit
+		row = 1
+		col = 1
+		EMSearch "MMIS", row, col
+		IF row <> 1 then
+			If end_script = True then 
+				script_end_procedure("You do not appear to be in MMIS. You may be passworded out. Please check your MMIS screen and try again.")
+			Else
+				warning_box = MsgBox("You do not appear to be in MMIS. You may be passworded out. Please check your MMIS screen and try again, or press ""cancel"" to exit the script.", vbOKCancel)
+				If warning_box = vbCancel then stopscript
+			End if
+		End if
+	Loop until row = 1
 End function
 
 Function check_for_password(are_we_passworded_out)
@@ -1788,6 +1784,19 @@ Function find_variable(opening_string, variable_name, length_of_variable)
   If row <> 0 then EMReadScreen variable_name, length_of_variable, row, col + len(opening_string)
 End function
 
+
+FUNCTION find_MAXIS_worker_number(x_number)
+	EMReadScreen SELF_check, 4, 2, 50		'Does this to check to see if we're on SELF screen
+	IF SELF_check = "SELF" THEN				'if on the self screen then x # is read from coordinates
+		EMReadScreen x_number, 7, 22, 8
+	ELSE
+		Call find_variable("PW: ", x_number, 7)	'if not, then the PW: variable is searched to find the worker #
+		If isnumeric(MAXIS_worker_number) = true then 	 'making sure that the worker # is a number
+			MAXIS_worker_number = x_number				'delcares the MAXIS_worker_number to be the x_number
+		End if
+	END if
+END FUNCTION
+
 'This function fixes the case for a phrase. For example, "ROBERT P. ROBERTSON" becomes "Robert P. Robertson".
 '	It capitalizes the first letter of each word.
 Function fix_case(phrase_to_split, smallest_length_to_skip)										'Ex: fix_case(client_name, 3), where 3 means skip words that are 3 characters or shorter
@@ -1806,56 +1815,12 @@ Function fix_case(phrase_to_split, smallest_length_to_skip)										'Ex: fix_ca
 	phrase_to_split = output_phrase																'making the phrase_to_split equal to the output, so that it can be used by the rest of the script.
 End function
 
-
-FUNCTION find_MAXIS_worker_number(x_number)
-	EMReadScreen SELF_check, 4, 2, 50		'Does this to check to see if we're on SELF screen
-	IF SELF_check = "SELF" THEN				'if on the self screen then x # is read from coordinates
-		EMReadScreen x_number, 7, 22, 8
-	ELSE
-		Call find_variable("PW: ", x_number, 7)	'if not, then the PW: variable is searched to find the worker #
-		If isnumeric(MAXIS_worker_number) = true then 	 'making sure that the worker # is a number
-			MAXIS_worker_number = x_number				'delcares the MAXIS_worker_number to be the x_number
-		End if
-	END if
-END FUNCTION
-
-
 Function get_to_MMIS_session_begin
   Do
     EMSendkey "<PF6>"
     EMWaitReady 0, 0
     EMReadScreen session_start, 18, 1, 7
   Loop until session_start = "SESSION TERMINATED"
-End function
-
-Function MAXIS_background_check
-	Do
-		call navigate_to_screen("STAT", "SUMM")
-		EMReadScreen SELF_check, 4, 2, 50
-		If SELF_check = "SELF" then
-			PF3
-			Pause 2
-		End if
-	Loop until SELF_check <> "SELF"
-End function
-
-Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
-	EMReadScreen variable_for_SELF_check, 4, 2, 50
-	IF variable_for_SELF_check = "SELF" then
-		EMReadScreen variable_for_MAXIS_case_number, 8, 18, 43
-		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
-		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
-	ELSE
-		row = 1
-		col = 1
-		EMSearch "Case Nbr:", row, col
-		If row <> 0 then
-			EMReadScreen variable_for_MAXIS_case_number, 8, row, col + 10
-			variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
-			variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
-		END IF
-	END IF
-
 End function
 
 Function HH_member_custom_dialog(HH_member_array)
@@ -1942,6 +1907,36 @@ function log_usage_stats_without_closing 'For use when logging usage stats but t
 		"VALUES ('" & user_ID & "', '" & date & "', '" & time & "', '" & name_of_script & "', " & script_run_time & ", '" & "" & "')", objConnection, adOpenStatic, adLockOptimistic
 	End if
 end function
+
+Function MAXIS_background_check
+	Do
+		call navigate_to_screen("STAT", "SUMM")
+		EMReadScreen SELF_check, 4, 2, 50
+		If SELF_check = "SELF" then
+			PF3
+			Pause 2
+		End if
+	Loop until SELF_check <> "SELF"
+End function
+
+Function MAXIS_case_number_finder(variable_for_MAXIS_case_number)
+	EMReadScreen variable_for_SELF_check, 4, 2, 50
+	IF variable_for_SELF_check = "SELF" then
+		EMReadScreen variable_for_MAXIS_case_number, 8, 18, 43
+		variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
+		variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
+	ELSE
+		row = 1
+		col = 1
+		EMSearch "Case Nbr:", row, col
+		If row <> 0 then
+			EMReadScreen variable_for_MAXIS_case_number, 8, row, col + 10
+			variable_for_MAXIS_case_number = replace(variable_for_MAXIS_case_number, "_", "")
+			variable_for_MAXIS_case_number = trim(variable_for_MAXIS_case_number)
+		END IF
+	END IF
+
+End function
 
 'This function navigates to various panels in MAXIS. You need to name your buttons using the button names in the function.
 FUNCTION MAXIS_dialog_navigation
@@ -2031,6 +2026,7 @@ FUNCTION MAXIS_dialog_navigation
 	If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
 	If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
 	If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
+	If ButtonPressed = SPON_button then call navigate_to_screen("stat", "SPON")
 	If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
 	If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
 	If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
@@ -2052,6 +2048,30 @@ FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the
 		MAXIS_footer_month = left(MAXIS_footer, 2)
 		MAXIS_footer_year = right(MAXIS_footer, 2)
 	End if
+END FUNCTION
+
+'Function for checking and changing the footer month to the MAXIS_footer_month & MAXIS_footer_year selected by the user in the inital dialog if necessary
+FUNCTION MAXIS_footer_month_confirmation	'Must use MAXIS_footer_month & MAXIS footer_year as variables for this function to work 
+	EMReadScreen SELF_check, 4, 2, 50			'Does this to check to see if we're on SELF screen
+	IF SELF_check = "SELF" THEN
+		EMReadScreen panel_footer_month, 2, 20, 43
+		EMReadScreen panel_footer_year, 2, 20, 46
+	ELSE
+		Call find_variable("Month: ", MAXIS_footer, 5)	'finding footer month and year if not on the SELF screen
+		panel_footer_month = left(MAXIS_footer, 2)
+		panel_footer_year = right(MAXIS_footer, 2)
+		If row <> 0 then 
+  			panel_footer_month = panel_footer_month		'Establishing variables
+			panel_footer_year =panel_footer_year
+		END IF
+	END IF
+	panel_date = panel_footer_month & panel_footer_year		'creating new variable combining month and year for the date listed on the MAXIS panel
+	dialog_date = MAXIS_footer_month & MAXIS_footer_year	'creating new variable combining the MAXIS_footer_month & MAXIS_footer_year to measure against the panel date
+	IF panel_date <> dialog_date then 						'if dates are not equal 
+		back_to_SELF		
+		EMWriteScreen MAXIS_footer_month, 20, 43			'goes back to self and enters the date that the user selcted'
+		EMWriteScreen MAXIS_footer_year, 20, 46
+	END IF
 END FUNCTION
 
 Function memb_navigation_next
@@ -4582,12 +4602,12 @@ FUNCTION write_panel_to_MAXIS_HEST(HEST_FS_choice_date, HEST_first_month, HEST_h
 	transmit
 End function
 
-Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG_status_date, IMIG_status_ver, IMIG_status_LPR_adj_from, IMIG_nationality)
+Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG_status_date, IMIG_status_ver, IMIG_status_LPR_adj_from, IMIG_nationality, IMIG_40_soc_sec, IMIG_40_soc_sec_verif, IMIG_battered_spouse_child, IMIG_battered_spouse_child_verif, IMIG_military_status, IMIG_military_status_verif, IMIG_hmong_lao_nat_amer, IMIG_st_prog_esl_ctzn_coop, IMIG_st_prog_esl_ctzn_coop_verif, IMIG_fss_esl_skills_training)
 	call navigate_to_screen("STAT", "IMIG")
 	call ERRR_screen_check
 	call create_panel_if_nonexistent
-	call create_MAXIS_friendly_date(date, 0, 5, 45)						'Writes actual date, needs to add 2000 as this is weirdly a 4 digit year
-	EMWriteScreen datepart("yyyy", date), 5, 51
+	call create_MAXIS_friendly_date(APPL_date, 0, 5, 45)						'Writes actual date, needs to add 2000 as this is weirdly a 4 digit year
+	EMWriteScreen datepart("yyyy", APPL_date), 5, 51
 	EMWriteScreen IMIG_imigration_status, 6, 45							'Writes imig status
 	IF IMIG_entry_date <> "" THEN
 		call create_MAXIS_friendly_date(IMIG_entry_date, 0, 7, 45)			'Enters year as a 2 digit number, so have to modify manually
@@ -4600,6 +4620,16 @@ Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG
 	EMWriteScreen IMIG_status_ver, 8, 45								'Enters status ver
 	EMWriteScreen IMIG_status_LPR_adj_from, 9, 45						'Enters status LPR adj from
 	EMWriteScreen IMIG_nationality, 10, 45								'Enters nationality
+	EMwritescreen IMIG_40_soc_sec, 13, 56								'Enters info about Social Security Credits
+	EMwritescreen IMIG_40_soc_sec_verif, 13, 71	
+	EMwritescreen IMIG_battered_spouse_child, 14, 56					'Enters info about Battered Child/Spouse claims 
+	EMwritescreen IMIG_battered_spouse_child_verif, 14, 71 
+	EMwritescreen IMIG_military_status, 15, 56 							'Enters info about possible military status
+	EMwritescreen IMIG_military_status_verif, 15, 71 
+	EMwritescreen IMIG_hmong_lao_nat_amer, 16, 56 						'Enters status of particular nationalities/identity
+	EMwritescreen IMIG_st_prog_esl_ctzn_coop, 17, 56 					'Enters information about ESL/Citizen cooperation status
+	EMwritescreen IMIG_st_prog_esl_ctzn_coop_verif, 17, 71 
+	EMwritescreen IMIG_fss_esl_skills_training, 18, 56 					'Enters information about ESL Skills course
 	transmit
 	transmit
 End function
@@ -5648,73 +5678,3 @@ END FUNCTION
 FUNCTION write_TIKL_function(variable)									'DEPRECIATED AS OF 01/20/2015.
 	call write_variable_in_TIKL(variable)
 END FUNCTION
-
-'<<<<<<<<<<<<THESE VARIABLES ARE TEMPORARY, DESIGNED TO KEEP CERTAIN COUNTIES FROM ACCIDENTALLY JOINING THE BETA, DUE TO A GLITCH IN THE INSTALLER WHICH WAS CORRECTED IN VERSION 1.3.1
-If beta_agency = True then
-	'These counties are NOT part of the beta. Because of that, if they are showing up as part of the beta, it will manually remove them from the beta branch and set them back to release.
-	'	As of 06/03/2015, it will also deliver a MsgBox telling them they need to update. These counties should have fixed this back in January when this was first posted on SIR.
-	If worker_county_code = "x101" or _
-	   worker_county_code = "x103" or _
-	   worker_county_code = "x106" or _
-	   worker_county_code = "x107" or _
-	   worker_county_code = "x108" or _
-	   worker_county_code = "x109" or _
-	   worker_county_code = "x110" or _
-	   worker_county_code = "x111" or _
-	   worker_county_code = "x112" or _
-	   worker_county_code = "x113" or _
-	   worker_county_code = "x114" or _
-	   worker_county_code = "x115" or _
-	   worker_county_code = "x116" or _
-	   worker_county_code = "x117" or _
-	   worker_county_code = "x121" or _
-	   worker_county_code = "x122" or _
-	   worker_county_code = "x124" or _
-	   worker_county_code = "x126" or _
-	   worker_county_code = "x128" or _
-	   worker_county_code = "x129" or _
-	   worker_county_code = "x130" or _
-	   worker_county_code = "x131" or _
-	   worker_county_code = "x132" or _
-	   worker_county_code = "x134" or _
-	   worker_county_code = "x135" or _
-	   worker_county_code = "x136" or _
-	   worker_county_code = "x137" or _
-	   worker_county_code = "x138" or _
-	   worker_county_code = "x139" or _
-	   worker_county_code = "x140" or _
-	   worker_county_code = "x143" or _
-	   worker_county_code = "x144" or _
-	   worker_county_code = "x145" or _
-	   worker_county_code = "x146" or _
-	   worker_county_code = "x148" or _
-	   worker_county_code = "x149" or _
-	   worker_county_code = "x152" or _
-	   worker_county_code = "x153" or _
-	   worker_county_code = "x154" or _
-	   worker_county_code = "x156" or _
-	   worker_county_code = "x158" or _
-	   worker_county_code = "x161" or _
-	   worker_county_code = "x163" or _
-	   worker_county_code = "x165" or _
-	   worker_county_code = "x166" or _
-	   worker_county_code = "x168" or _
-	   worker_county_code = "x170" or _
-	   worker_county_code = "x171" or _
-	   worker_county_code = "x172" or _
-	   worker_county_code = "x175" or _
-	   worker_county_code = "x176" or _
-	   worker_county_code = "x177" or _
-	   worker_county_code = "x178" or _
-	   worker_county_code = "x180" or _
-	   worker_county_code = "x182" or _
-	   worker_county_code = "x183" or _
-	   worker_county_code = "x184" or _
-	   worker_county_code = "x185" or _
-	   worker_county_code = "x187" then
-		MsgBox "If you are seeing this message, it's because a script glitch has been detected, which requires an alpha user to reinstall the scripts for your county." & vbNewLine & vbNewLine & _
-		  "Instructions for updating your scripts can be found on SIR, in a document titled ""Beta agency bug fix 01.27.2015"". Please ask an alpha user to follow these instructions to correct this issue." & vbNewLine & vbNewLine & _
-		  "This script will now stop."
-		stopscript
-	End if
-End if
