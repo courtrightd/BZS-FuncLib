@@ -667,8 +667,7 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_ACCT_to_variable(variable_written_to)
-          EMReadScreen ACCT_panel_current, 2, 2, 72
-		  ACCT_panel_current = trim(ACCT_panel_current)
+          EMReadScreen ACCT_panel_current, 1, 2, 73
           If cint(ACCT_panel_current) < cint(ACCT_total) then transmit
         Loop until cint(ACCT_panel_current) = cint(ACCT_total)
       End if
@@ -719,12 +718,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen CARS_total, 1, 2, 78
+      EMReadScreen CARS_total, 2, 2, 78
+	  CARS_total = trim(CARS_total)
       If CARS_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_CARS_to_variable(variable_written_to)
-          EMReadScreen CARS_panel_current, 1, 2, 73
+          EMReadScreen CARS_panel_current, 2, 2, 72
+		  CARS_panel_current = trim(CARS_panel_current)
           If cint(CARS_panel_current) < cint(CARS_total) then transmit
         Loop until cint(CARS_panel_current) = cint(CARS_total)
       End if
@@ -1224,12 +1225,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen OTHR_total, 1, 2, 78
+      EMReadScreen OTHR_total, 2, 2, 78
+	  OTHR_total = trim(OTHR_total)
       If OTHR_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_OTHR_to_variable(variable_written_to)
-          EMReadScreen OTHR_panel_current, 1, 2, 73
+          EMReadScreen OTHR_panel_current, 2, 2, 72
+		  OTHR_panel_current = trim(OTHR_panel_current)
           If cint(OTHR_panel_current) < cint(OTHR_total) then transmit
         Loop until cint(OTHR_panel_current) = cint(OTHR_total)
       End if
@@ -1313,12 +1316,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen REST_total, 1, 2, 78
+      EMReadScreen REST_total, 2, 2, 78
+	  REST_total = trim(REST_total)
       If REST_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_REST_to_variable(variable_written_to)
-          EMReadScreen REST_panel_current, 1, 2, 73
+          EMReadScreen REST_panel_current, 2, 2, 72
+		  REST_panel_current = trim(REST_panel_current)
           If cint(REST_panel_current) < cint(REST_total) then transmit
         Loop until cint(REST_panel_current) = cint(REST_total)
       End if
@@ -1361,12 +1366,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen SECU_total, 1, 2, 78
+      EMReadScreen SECU_total, 2, 2, 78
+	  SECU_total = trim(SECU_total)
       If SECU_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_SECU_to_variable(variable_written_to)
-          EMReadScreen SECU_panel_current, 1, 2, 73
+          EMReadScreen SECU_panel_current, 2, 2, 72
+		  SECU_panel_current = trim(SECU_panel_current)
           If cint(SECU_panel_current) < cint(SECU_total) then transmit
         Loop until cint(SECU_panel_current) = cint(SECU_total)
       End if
