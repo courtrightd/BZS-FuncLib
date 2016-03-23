@@ -667,7 +667,8 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_ACCT_to_variable(variable_written_to)
-          EMReadScreen ACCT_panel_current, 1, 2, 73
+          EMReadScreen ACCT_panel_current, 2, 2, 72
+          ACCT_panel_current = trim(ACCT_panel_current)
           If cint(ACCT_panel_current) < cint(ACCT_total) then transmit
         Loop until cint(ACCT_panel_current) = cint(ACCT_total)
       End if
