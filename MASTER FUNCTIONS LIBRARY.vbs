@@ -1794,6 +1794,26 @@ Function find_variable(opening_string, variable_name, length_of_variable)
   If row <> 0 then EMReadScreen variable_name, length_of_variable, row, col + len(opening_string)
 End function
 
+Function file_selection_system_dialog(file_selected, file_extension_restriction)
+	'Creates a Windows Script Host object
+	Set wShell=CreateObject("WScript.Shell")
+
+	'This loops until the right file extension is selected. If it isn't specified (= ""), it'll always exit here.
+	Do
+		'Creates an object which executes the "select a file" dialog, using a Microsoft HTML application (MSHTA.exe), and some handy-dandy HTML.
+		Set oExec=wShell.Exec("mshta.exe ""about:<input type=file id=FILE ><script>FILE.click();new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).WriteLine(FILE.value);close();resizeTo(0,0);</script>""")
+
+		'Creates the file_selected variable from the exit
+		file_selected = oExec.StdOut.ReadLine
+
+		'If no file is selected the script will stop
+		If file_selected = "" then stopscript
+
+		'If the rightmost characters of the file selected don't match what was in the file_extension_restriction argument, it'll tell the user. Otherwise the loop (and function) ends.
+		If right(file_selected, len(file_extension_restriction)) <> file_extension_restriction then MsgBox "You've entered an incorrect file type. The allowable file type is: " & file_extension_restriction & "."
+	Loop until right(file_selected, len(file_extension_restriction)) = file_extension_restriction
+End function
+
 FUNCTION find_MAXIS_worker_number(x_number)
 	EMReadScreen SELF_check, 4, 2, 50		'Does this to check to see if we're on SELF screen
 	IF SELF_check = "SELF" THEN				'if on the self screen then x # is read from coordinates
